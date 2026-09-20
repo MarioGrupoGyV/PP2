@@ -146,3 +146,9 @@ La revisión inicial del Sprint 1 es `20260919_0001`. La revisión del Sprint 2 
 ## `deviations` (Sprint 4)
 
 La revisión `20260920_0003` agrega desviaciones detectadas sin modificar las tablas ni migraciones anteriores. Cada registro referencia el caso y, cuando corresponde, el evento y la etapa. `expected_value`, `actual_value` y `details` son JSONB; `fingerprint` es un SHA-256 único que hace idempotente el análisis. Las claves foráneas usan `RESTRICT` y `resolved_at` queda disponible para un workflow futuro.
+
+## Persistencia ML (Sprint 5)
+
+La revisión `20260920_0004` agrega `ml_model_runs` y `predictions`. La primera conserva historial, métricas, dataset hash, threshold y referencia verificable al artifact; un índice parcial garantiza un único modelo activo. La segunda conserva el snapshot, score, label, nivel, features y explicación asociados a un modelo. Su fingerprint único hace idempotente una inferencia repetida.
+
+Ambas tablas usan claves foráneas `RESTRICT`. El downgrade elimina únicamente estas tablas y el enum de riesgo, sin alterar Event Log ni desviaciones.

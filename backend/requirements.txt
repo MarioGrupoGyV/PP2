@@ -4,5 +4,7 @@ pm4py==2.7.23.8
 pydantic-settings==2.9.1
 psycopg[binary]==3.2.9
 python-multipart==0.0.20
+joblib==1.5.1
+scikit-learn==1.7.0
 SQLAlchemy==2.0.41
 uvicorn[standard]==0.34.2

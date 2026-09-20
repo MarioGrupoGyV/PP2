@@ -9,6 +9,7 @@ from app.api.routes import (
     process_mining,
     process_stages,
     deviations,
+    predictions,
 )
 
 api_router = APIRouter()
@@ -27,6 +28,7 @@ api_router.include_router(events.router, tags=["events"])
 api_router.include_router(imports.router, prefix="/imports", tags=["imports"])
 api_router.include_router(event_log.router, prefix="/event-log", tags=["event-log"])
 api_router.include_router(deviations.router, tags=["deviations"])
+api_router.include_router(predictions.router, tags=["predictions"])
 api_router.include_router(
     process_mining.router,
     prefix="/process-mining",

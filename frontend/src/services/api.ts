@@ -23,6 +23,13 @@ import type {
   DeviationSummary,
   DeviationType,
 } from "../types/deviations";
+import type {
+  ActiveModel,
+  CommercialCaseLookup,
+  ModelEvaluation,
+  Prediction,
+  PredictionList,
+} from "../types/predictions";
 
 const API_URL = (import.meta.env.VITE_API_URL || "http://localhost:8000").replace(
   /\/$/,
@@ -185,4 +192,34 @@ export function getDeviations(filters: {
 
 export function getDeviation(id: string): Promise<Deviation> {
   return requestJson<Deviation>(`/api/v1/deviations/${id}`);
+}
+
+export function getActivePredictiveModel(): Promise<ActiveModel> {
+  return requestJson<ActiveModel>("/api/v1/ml/model");
+}
+
+export function getModelEvaluation(): Promise<ModelEvaluation> {
+  return requestJson<ModelEvaluation>("/api/v1/ml/evaluation");
+}
+
+export function getRecentPredictions(): Promise<PredictionList> {
+  return requestJson<PredictionList>("/api/v1/predictions?page=1&page_size=20");
+}
+
+export function getCaseByCode(caseCode: string): Promise<CommercialCaseLookup> {
+  return requestJson<CommercialCaseLookup>(
+    `/api/v1/cases/code/${encodeURIComponent(caseCode)}`,
+  );
+}
+
+export function predictCase(caseId: string, asOf?: string): Promise<Prediction> {
+  return requestJson<Prediction>(
+    `/api/v1/cases/${caseId}/predict`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(asOf ? { as_of: asOf } : {}),
+    },
+    30_000,
+  );
 }

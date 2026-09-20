@@ -1,6 +1,6 @@
 # Sistema de minería de procesos con alertas predictivas para detectar desviaciones en la gestión comercial inmobiliaria
 
-Sistema en evolución para representar, descubrir y contrastar el proceso comercial inmobiliario desde un Event Log. Los Sprints 0–3 implementaron infraestructura, persistencia, importación trazable y descubrimiento con PM4Py; el Sprint 4 incorpora un modelo esperado configurable, conformance checking y detección histórica de desviaciones. Todavía no incluye Machine Learning, alertas predictivas ni autenticación.
+Sistema en evolución para representar, descubrir y contrastar el proceso comercial inmobiliario desde un Event Log. Los Sprints 0–4 implementaron infraestructura, persistencia, importación trazable, Process Mining y detección histórica de desviaciones; el Sprint 5 incorpora la estimación ML de riesgo `NEXT_DEVIATION`. Todavía no incluye alertas ni autenticación.
 
 ## Arquitectura
 
@@ -62,7 +62,7 @@ Se usa una única aplicación backend; no hay microservicios. PostgreSQL mantien
 └── docker-compose.yml
 ```
 
-La API usa routers separados bajo `/api/v1`. Process Mining y desviaciones están implementados; predicciones, alertas y un dashboard predictivo permanecen pendientes.
+La API usa routers separados bajo `/api/v1`. Process Mining, desviaciones y predicción de riesgo están implementados; alertas y notificaciones permanecen pendientes.
 
 ## Requisitos
 
@@ -446,4 +446,24 @@ Sprint 4 compara los eventos persistidos con las etapas activas configuradas en 
 
 La interfaz se encuentra en http://localhost:5173/deviations. El umbral histórico de inactividad se configura mediante `DEVIATION_INACTIVITY_HOURS` (72 horas por defecto).
 
-Permanecen fuera de alcance Machine Learning, predicciones, alertas en tiempo real y workflows de resolución.
+Permanecen fuera de alcance las alertas en tiempo real y los workflows de resolución.
+
+## Sprint 5 — Predicción de riesgo
+
+Sprint 5 construye snapshots históricos sin leakage y estima si ocurrirá una desviación en la ventana `(snapshot, siguiente STAGE_CHANGE]`. El diseño, features, split, modelos y limitaciones se explican en [`docs/predictive-model.md`](docs/predictive-model.md).
+
+| Método | Ruta | Propósito |
+|---|---|---|
+| `POST` | `/api/v1/cases/{id}/predict` | Calcular o reutilizar el riesgo para un snapshot. |
+| `GET` | `/api/v1/cases/{id}/prediction` | Obtener la predicción más reciente del caso. |
+| `GET` | `/api/v1/predictions` | Listar predicciones persistidas. |
+| `GET` | `/api/v1/ml/model` | Consultar el modelo activo. |
+| `GET` | `/api/v1/ml/evaluation` | Consultar evaluación persistida. |
+
+La interfaz está disponible en http://localhost:5173/predictions. El entrenamiento es explícito y nunca se ejecuta al iniciar FastAPI:
+
+```bash
+docker compose exec backend python -m scripts.train_predictive_model
+```
+
+Sprint 4 informa “el caso superó el SLA”; Sprint 5 informa “el caso presenta un riesgo estimado de desviación antes de su próxima transición”. No se generan alertas automáticamente.

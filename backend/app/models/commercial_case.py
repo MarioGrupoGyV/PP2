@@ -12,6 +12,7 @@ if TYPE_CHECKING:
     from app.models.deviation import Deviation
     from app.models.event import Event
     from app.models.process_stage import ProcessStage
+    from app.models.prediction import Prediction
 
 
 class CommercialCase(Base):
@@ -66,6 +67,10 @@ class CommercialCase(Base):
         passive_deletes=True,
     )
     deviations: Mapped[list["Deviation"]] = relationship(
+        back_populates="commercial_case",
+        passive_deletes=True,
+    )
+    predictions: Mapped[list["Prediction"]] = relationship(
         back_populates="commercial_case",
         passive_deletes=True,
     )

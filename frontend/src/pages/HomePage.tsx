@@ -28,6 +28,12 @@ export function HomePage() {
 
           <div className="flex shrink-0 flex-col gap-3 sm:items-stretch">
             <a
+              href="/predictions"
+              className="inline-flex items-center justify-center rounded-xl bg-violet-700 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-violet-700/15 transition hover:bg-violet-800"
+            >
+              Predicción de riesgo
+            </a>
+            <a
               href="/deviations"
               className="inline-flex items-center justify-center rounded-xl bg-amber-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-amber-600/15 transition hover:bg-amber-700"
             >

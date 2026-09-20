@@ -14,6 +14,7 @@ if TYPE_CHECKING:
     from app.models.deviation import Deviation
     from app.models.event_log_import import EventLogImport
     from app.models.process_stage import ProcessStage
+    from app.models.prediction import Prediction
 
 metadata_type = JSON().with_variant(JSONB, "postgresql")
 
@@ -82,5 +83,9 @@ class Event(Base):
     )
     deviations: Mapped[list["Deviation"]] = relationship(
         back_populates="event",
+        passive_deletes=True,
+    )
+    snapshot_predictions: Mapped[list["Prediction"]] = relationship(
+        back_populates="snapshot_event",
         passive_deletes=True,
     )

@@ -32,6 +32,8 @@ services:
       BACKEND_PORT: 8000
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
       DEVIATION_INACTIVITY_HOURS: ${DEVIATION_INACTIVITY_HOURS:-72}
+      ML_SNAPSHOT_INTERVAL_HOURS: ${ML_SNAPSHOT_INTERVAL_HOURS:-12}
+      ML_MODEL_DIR: ${ML_MODEL_DIR:-/app/ml/models}
       POSTGRES_DB: ${POSTGRES_DB:-gyv_process_mining}
       POSTGRES_USER: ${POSTGRES_USER:-gyv_user}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-gyv_password}
@@ -40,6 +42,8 @@ services:
       DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-gyv_user}:${POSTGRES_PASSWORD:-gyv_password}@database:5432/${POSTGRES_DB:-gyv_process_mining}
     ports:
       - "${BACKEND_PORT:-8000}:8000"
+    volumes:
+      - ml_models:/app/ml/models
     depends_on:
       database:
         condition: service_healthy
@@ -85,6 +89,7 @@ services:
 
 volumes:
   postgres_data:
+  ml_models:
 
 networks:
   app_network:
