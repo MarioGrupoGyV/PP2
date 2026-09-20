@@ -71,6 +71,9 @@ Registro inmutable de actividades de cada caso y base del futuro Event Log.
 | `id` | UUID | Clave primaria. |
 | `case_id` | UUID | FK a `commercial_cases.id`, `RESTRICT`. |
 | `stage_id` | UUID | FK a `process_stages.id`, `RESTRICT`. |
+| `import_id` | UUID | FK nullable a `event_log_imports.id`; `null` en eventos manuales. |
+| `source_row_number` | INTEGER | Fila de origen del CSV; nullable. |
+| `event_fingerprint` | VARCHAR(64) | SHA-256 semántico, único y nullable. |
 | `activity` | VARCHAR(200) | Obligatorio. |
 | `event_type` | ENUM | `STAGE_CHANGE`, `INTERACTION` o `SYSTEM`. |
 | `resource` | VARCHAR(150) | Opcional. |
@@ -79,6 +82,23 @@ Registro inmutable de actividades de cada caso y base del futuro Event Log.
 | `created_at` | TIMESTAMPTZ | Momento de persistencia automático. |
 
 Existe un índice compuesto `(case_id, timestamp)` para recuperar eficientemente el timeline de un caso, además del índice de `timestamp` para la inspección cronológica general.
+
+## `event_log_imports`
+
+Registra cada archivo confirmado mediante el importador del Sprint 2.
+
+| Columna | Tipo | Reglas |
+|---|---|---|
+| `id` | UUID | Clave primaria. |
+| `filename` | VARCHAR(255) | Nombre sanitizado del archivo. |
+| `file_sha256` | VARCHAR(64) | SHA-256 único del contenido exacto. |
+| `total_rows` | INTEGER | Filas de datos recibidas. |
+| `imported_cases` | INTEGER | Casos nuevos creados. |
+| `imported_events` | INTEGER | Eventos nuevos persistidos. |
+| `skipped_duplicates` | INTEGER | Eventos ya existentes omitidos. |
+| `created_at` | TIMESTAMPTZ | Fecha automática de importación e indexada. |
+
+Un mismo archivo no puede confirmarse dos veces. La relación con `events` permite conocer qué importación y fila originó cada evento sin afectar los eventos manuales del Sprint 1.
 
 ## Semántica del Event Log
 
@@ -120,4 +140,4 @@ docker compose exec backend alembic upgrade head
 docker compose exec backend python -m scripts.seed_process_stages
 ```
 
-La revisión inicial del Sprint 1 es `20260919_0001`.
+La revisión inicial del Sprint 1 es `20260919_0001`. La revisión del Sprint 2 es `20260919_0002` y puede revertirse sin eliminar tablas ni datos del Sprint 1.

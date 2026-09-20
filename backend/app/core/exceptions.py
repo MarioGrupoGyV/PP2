@@ -20,3 +20,7 @@ class DomainValidationError(ApplicationError):
 
 class PersistenceError(ApplicationError):
     status_code = 500
+
+
+class FileTooLargeError(ApplicationError):
+    status_code = 413

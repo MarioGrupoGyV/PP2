@@ -1,6 +1,6 @@
 # Sistema de minería de procesos con alertas predictivas para detectar desviaciones en la gestión comercial inmobiliaria
 
-Sistema en evolución para representar el proceso comercial inmobiliario como un Event Log. El Sprint 0 implementó la comunicación **Frontend → Backend → PostgreSQL** y el Sprint 1 incorpora etapas configurables, casos comerciales y eventos persistentes. Todavía no incluye minería de procesos, Machine Learning ni autenticación.
+Sistema en evolución para representar el proceso comercial inmobiliario como un Event Log. El Sprint 0 implementó la comunicación **Frontend → Backend → PostgreSQL**, el Sprint 1 incorporó etapas, casos y eventos persistentes, y el Sprint 2 agrega la importación validada y trazable de archivos CSV. Todavía no incluye minería de procesos, Machine Learning ni autenticación.
 
 ## Arquitectura
 
@@ -323,6 +323,75 @@ python -m pytest backend/tests -v
 
 Las pruebas usan una base SQLite aislada únicamente como doble de prueba. Las migraciones y verificaciones finales se ejecutan además contra PostgreSQL 17.
 
-## Pendiente para Sprint 2
+## Sprint 2 — Importación y preparación del Event Log
 
-Permanecen fuera de alcance Process Mining, PM4Py, análisis de desviaciones, reglas automáticas de SLA, Machine Learning, predicciones, alertas, autenticación, usuarios, integraciones externas y dashboard funcional.
+Sprint 2 incorpora un pipeline transaccional **CSV → validación → normalización → preview → confirmación → persistencia**. La especificación detallada se encuentra en [`docs/event-log-import.md`](docs/event-log-import.md).
+
+### Formato CSV
+
+Columnas obligatorias:
+
+- `case_code`
+- `stage_code`
+- `activity`
+- `timestamp`
+
+Columnas opcionales: `resource`, `event_type`, `source` y `metadata`. `event_type` usa `STAGE_CHANGE` por defecto y `metadata` usa `{}`. El límite por archivo es 10 MB y el encoding debe ser UTF-8 o UTF-8-SIG.
+
+### Endpoints del Sprint 2
+
+| Método | Ruta | Propósito |
+|---|---|---|
+| `POST` | `/api/v1/imports/preview` | Validar un CSV sin persistir datos. |
+| `POST` | `/api/v1/imports/commit` | Revalidar e importar atómicamente. |
+| `GET` | `/api/v1/imports` | Listar importaciones recientes. |
+| `GET` | `/api/v1/imports/{id}` | Consultar una importación. |
+| `GET` | `/api/v1/imports/template` | Descargar un CSV de ejemplo. |
+| `GET` | `/api/v1/event-log` | Obtener el Event Log normalizado. |
+
+La interfaz está disponible en http://localhost:5173/imports.
+
+### Preview e importación
+
+```bash
+curl -X POST http://localhost:8000/api/v1/imports/preview \
+  -F "file=@data/demo_event_log.csv"
+
+curl -X POST http://localhost:8000/api/v1/imports/commit \
+  -F "file=@data/demo_event_log.csv"
+```
+
+El commit solo se permite cuando todas las filas son válidas. El backend vuelve a validar el archivo, aunque ya exista un preview exitoso.
+
+### Deduplicación y trazabilidad
+
+- `file_sha256` identifica el contenido exacto del archivo; repetirlo responde `409`.
+- Cada fila normalizada obtiene un fingerprint SHA-256 basado en caso, etapa, actividad, timestamp UTC, tipo, recurso, fuente y metadata JSON canónica.
+- El índice único de `event_fingerprint` evita repetir eventos entre archivos diferentes.
+- `events.import_id` y `events.source_row_number` conservan la procedencia.
+- Los eventos manuales mantienen estos campos y el fingerprint en `null`.
+
+### Generador de datos ficticios
+
+```bash
+python backend/scripts/generate_demo_event_log.py \
+  --cases 400 \
+  --seed 42 \
+  --output data/demo_event_log.csv
+```
+
+El comando también genera `data/demo_event_log_ground_truth.csv`. El Event Log principal no contiene el escenario; el ground truth se mantiene separado para evaluación futura. Con el mismo seed se obtiene exactamente el mismo dataset.
+
+Distribución configurada:
+
+- `NORMAL`: 55 %
+- `STAGE_SKIP`: 10 %
+- `REWORK`: 10 %
+- `BACKTRACK`: 10 %
+- `LONG_DELAY`: 15 %
+
+Los archivos en `data/` están ignorados por Git.
+
+## Pendiente para Sprint 3
+
+Permanecen fuera de alcance PM4Py, Process Mining, Directly-Follows Graph, descubrimiento de procesos, conformance checking, clasificación de desviaciones, reglas automáticas de SLA, Machine Learning, predicciones y alertas.
