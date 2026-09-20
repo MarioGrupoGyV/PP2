@@ -1,0 +1,123 @@
+# Base de datos — Sprint 1
+
+Sprint 1 define el dominio mínimo para construir un Event Log comercial persistente. El esquema se administra exclusivamente con Alembic y actualmente contiene tres tablas de aplicación.
+
+## Relaciones
+
+```text
+PROCESS_STAGES
+  ├──< COMMERCIAL_CASES.current_stage_id
+  └──< EVENTS.stage_id
+
+COMMERCIAL_CASES
+  └──< EVENTS.case_id
+```
+
+Las relaciones usan `ON DELETE RESTRICT`. Esto evita eliminar accidentalmente una etapa o un caso que ya forme parte del historial. La API no expone operaciones de borrado físico; una etapa se retira configurando `active = false`.
+
+## `process_stages`
+
+Catálogo configurable de etapas del proceso comercial.
+
+| Columna | Tipo | Reglas |
+|---|---|---|
+| `id` | UUID | Clave primaria. |
+| `code` | VARCHAR(50) | Obligatorio, único e indexado. |
+| `name` | VARCHAR(100) | Obligatorio. |
+| `sequence` | INTEGER | Obligatorio, positivo y único. |
+| `sla_hours` | INTEGER | Obligatorio y positivo. |
+| `active` | BOOLEAN | `true` por defecto. |
+| `created_at` | TIMESTAMPTZ | Generado automáticamente. |
+| `updated_at` | TIMESTAMPTZ | Generado y actualizado automáticamente por la aplicación. |
+
+El seed inicial incorpora:
+
+| Secuencia | Código | Nombre | SLA inicial |
+|---:|---|---|---:|
+| 1 | `LEAD` | Lead | 1 h |
+| 2 | `CONTACTED` | Contactado | 48 h |
+| 3 | `QUALIFIED` | Calificado | 72 h |
+| 4 | `VISIT` | Visita | 120 h |
+| 5 | `RESERVED` | Separación | 120 h |
+| 6 | `CONTRACT` | Minuta | 120 h |
+
+Estos valores permanecen editables. Volver a ejecutar el seed no sobrescribe cambios ni duplica filas.
+
+## `commercial_cases`
+
+Representa una instancia individual del proceso comercial.
+
+| Columna | Tipo | Reglas |
+|---|---|---|
+| `id` | UUID | Clave primaria. |
+| `case_code` | VARCHAR(100) | Obligatorio, único e indexado. |
+| `current_stage_id` | UUID | FK a `process_stages.id`, `RESTRICT`. |
+| `assigned_resource` | VARCHAR(150) | Opcional; texto durante este sprint. |
+| `source` | VARCHAR(100) | Opcional. |
+| `status` | ENUM | `ACTIVE`, `CLOSED` o `CANCELLED`. |
+| `started_at` | TIMESTAMPTZ | Obligatorio. |
+| `closed_at` | TIMESTAMPTZ | Opcional; no puede preceder a `started_at`. |
+| `created_at` | TIMESTAMPTZ | Generado automáticamente. |
+| `updated_at` | TIMESTAMPTZ | Se actualiza también con cada cambio de etapa. |
+
+No existe todavía una entidad de clientes o usuarios. `assigned_resource` no es una clave foránea en este sprint.
+
+## `events`
+
+Registro inmutable de actividades de cada caso y base del futuro Event Log.
+
+| Columna | Tipo | Reglas |
+|---|---|---|
+| `id` | UUID | Clave primaria. |
+| `case_id` | UUID | FK a `commercial_cases.id`, `RESTRICT`. |
+| `stage_id` | UUID | FK a `process_stages.id`, `RESTRICT`. |
+| `activity` | VARCHAR(200) | Obligatorio. |
+| `event_type` | ENUM | `STAGE_CHANGE`, `INTERACTION` o `SYSTEM`. |
+| `resource` | VARCHAR(150) | Opcional. |
+| `timestamp` | TIMESTAMPTZ | Momento del evento, obligatorio e indexado. |
+| `metadata` | JSONB | Objeto JSON; `{}` por defecto. |
+| `created_at` | TIMESTAMPTZ | Momento de persistencia automático. |
+
+Existe un índice compuesto `(case_id, timestamp)` para recuperar eficientemente el timeline de un caso, además del índice de `timestamp` para la inspección cronológica general.
+
+## Semántica del Event Log
+
+La futura integración con Process Mining utilizará esta correspondencia:
+
+| Event Log | Origen |
+|---|---|
+| `case:concept:name` | `commercial_cases.case_code` |
+| `concept:name` | `events.activity` |
+| `time:timestamp` | `events.timestamp` |
+
+Por tanto, el Event Log se apoya en tres conceptos mínimos: **Case ID, Activity y Timestamp**. Este sprint solo garantiza la persistencia compatible; no incluye PM4Py ni algoritmos de minería.
+
+## Transacción de cambio de etapa
+
+Al registrar un evento `STAGE_CHANGE`, el servicio:
+
+1. bloquea y verifica el caso;
+2. verifica que la etapa exista y esté activa;
+3. agrega el evento;
+4. cambia `commercial_cases.current_stage_id`;
+5. confirma ambas escrituras en un único `commit`.
+
+Si la escritura falla, se ejecuta `rollback`; el caso conserva su etapa anterior y no queda un evento parcial.
+
+## Operación
+
+```bash
+# Aplicar el esquema
+docker compose exec backend alembic upgrade head
+
+# Revertir la última revisión
+docker compose exec backend alembic downgrade -1
+
+# Restaurar la última revisión
+docker compose exec backend alembic upgrade head
+
+# Cargar etapas iniciales
+docker compose exec backend python -m scripts.seed_process_stages
+```
+
+La revisión inicial del Sprint 1 es `20260919_0001`.
