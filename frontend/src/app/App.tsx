@@ -3,6 +3,7 @@ import { ImportsPage } from "../pages/ImportsPage";
 import { ProcessMiningPage } from "../pages/ProcessMiningPage";
 import { DeviationsPage } from "../pages/DeviationsPage";
 import { PredictionsPage } from "../pages/PredictionsPage";
+import { AlertsPage } from "../pages/AlertsPage";
 
 export function App() {
   const path = window.location.pathname.replace(/\/$/, "") || "/";
@@ -10,5 +11,6 @@ export function App() {
   if (path === "/process-mining") return <ProcessMiningPage />;
   if (path === "/deviations") return <DeviationsPage />;
   if (path === "/predictions") return <PredictionsPage />;
+  if (path === "/alerts") return <AlertsPage />;
   return <HomePage />;
 }

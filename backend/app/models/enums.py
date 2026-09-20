@@ -31,3 +31,24 @@ class RiskLevel(StrEnum):
     LOW = "LOW"
     MEDIUM = "MEDIUM"
     HIGH = "HIGH"
+
+
+class AlertStatus(StrEnum):
+    ACTIVE = "ACTIVE"
+    ATTENDED = "ATTENDED"
+    RESOLVED = "RESOLVED"
+    DISMISSED = "DISMISSED"
+
+
+class AlertEvaluationMode(StrEnum):
+    LATEST_OBSERVATION = "LATEST_OBSERVATION"
+    HISTORICAL_REPLAY = "HISTORICAL_REPLAY"
+
+
+class AlertActionType(StrEnum):
+    CREATED = "CREATED"
+    ATTENDED = "ATTENDED"
+    NOTE = "NOTE"
+    RISK_REEVALUATED = "RISK_REEVALUATED"
+    RESOLVED = "RESOLVED"
+    DISMISSED = "DISMISSED"

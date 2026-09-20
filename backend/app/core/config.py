@@ -23,6 +23,8 @@ class Settings(BaseSettings):
     deviation_inactivity_hours: int = Field(default=72, gt=0)
     ml_snapshot_interval_hours: int = Field(default=12, gt=0)
     ml_model_dir: Path = Path("ml/models")
+    alert_risk_threshold: float = Field(default=0.70, gt=0, le=1)
+    alert_batch_limit: int = Field(default=100, gt=0, le=500)
 
     model_config = SettingsConfigDict(
         env_file=".env",

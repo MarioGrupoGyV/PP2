@@ -467,3 +467,21 @@ docker compose exec backend python -m scripts.train_predictive_model
 ```
 
 Sprint 4 informa “el caso superó el SLA”; Sprint 5 informa “el caso presenta un riesgo estimado de desviación antes de su próxima transición”. No se generan alertas automáticamente.
+
+## Sprint 6 — Alertas predictivas operativas
+
+Sprint 6 convierte predicciones elegibles de alto riesgo en elementos de trabajo auditables sin modificar el modelo activo. Las reglas se documentan en [`docs/predictive-alerts.md`](docs/predictive-alerts.md).
+
+| Método | Ruta | Propósito |
+|---|---|---|
+| `POST` | `/api/v1/cases/{id}/alerts/evaluate` | Evaluar una alerta para un caso y snapshot. |
+| `POST` | `/api/v1/alerts/evaluate` | Ejecutar evaluación batch explícita y acotada. |
+| `GET` | `/api/v1/alerts` | Consultar la bandeja priorizada. |
+| `GET` | `/api/v1/alerts/summary` | Obtener indicadores operativos. |
+| `GET` | `/api/v1/alerts/{id}` | Ver riesgo, predicciones y factores. |
+| `GET/POST` | `/api/v1/alerts/{id}/actions` | Consultar la auditoría o agregar una nota. |
+| `POST` | `/api/v1/alerts/{id}/attend` | Registrar atención. |
+| `POST` | `/api/v1/alerts/{id}/resolve` | Resolver una alerta atendida. |
+| `POST` | `/api/v1/alerts/{id}/dismiss` | Descartar justificadamente. |
+
+La interfaz está disponible en http://localhost:5173/alerts. `ALERT_RISK_THRESHOLD=0.70` es independiente del `decision_threshold` del modelo; ambos deben cumplirse para originar una alerta. No existe evaluación automática, notificación externa, autenticación ni agente en este sprint.

@@ -152,3 +152,15 @@ La revisión `20260920_0003` agrega desviaciones detectadas sin modificar las ta
 La revisión `20260920_0004` agrega `ml_model_runs` y `predictions`. La primera conserva historial, métricas, dataset hash, threshold y referencia verificable al artifact; un índice parcial garantiza un único modelo activo. La segunda conserva el snapshot, score, label, nivel, features y explicación asociados a un modelo. Su fingerprint único hace idempotente una inferencia repetida.
 
 Ambas tablas usan claves foráneas `RESTRICT`. El downgrade elimina únicamente estas tablas y el enum de riesgo, sin alterar Event Log ni desviaciones.
+
+## Alertas predictivas (Sprint 6)
+
+La revisión `20260920_0005` agrega `alerts`, `alert_actions`, tres enums y `alert_code_seq`, sin modificar migraciones previas.
+
+`alerts` referencia el caso, la predicción que abrió el ciclo y la predicción evaluada más recientemente. Conserva score y nivel actuales, estado operativo, modo de evaluación, fingerprint SHA-256 y timestamps de atención/cierre. `alert_code` es único y usa una secuencia PostgreSQL; `fingerprint` también es único.
+
+El índice parcial único `uq_alerts_one_open_per_case` sobre `case_id WHERE status IN ('ACTIVE', 'ATTENDED')` impide dos alertas abiertas simultáneas para un caso. Los índices adicionales cubren código, caso, estado, nivel, fecha de generación y predicción más reciente.
+
+`alert_actions` registra `CREATED`, `ATTENDED`, `NOTE`, `RISK_REEVALUATED`, `RESOLVED` y `DISMISSED`. Cada fila conserva actor textual, notas, estado anterior/nuevo, predicción relacionada y detalles JSONB. La creación, reevaluación o transición y su acción se escriben dentro de la misma transacción.
+
+Todas las claves foráneas usan `RESTRICT`. El downgrade de Sprint 6 elimina solamente `alert_actions`, `alerts`, su secuencia y sus enums propios; mantiene intactos `predictions`, `ml_model_runs`, `deviations` y el Event Log.

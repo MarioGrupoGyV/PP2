@@ -174,7 +174,7 @@ def _fingerprint(
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
 
-def _read(prediction: Prediction) -> PredictionRead:
+def _read(prediction: Prediction, *, reused: bool = False) -> PredictionRead:
     return PredictionRead(
         id=prediction.id,
         case_id=prediction.case_id,
@@ -189,6 +189,7 @@ def _read(prediction: Prediction) -> PredictionRead:
         prediction_applicable=True,
         top_factors=[RiskFactor.model_validate(item) for item in prediction.explanation],
         predicted_at=prediction.predicted_at,
+        prediction_reused=reused,
     )
 
 
@@ -231,7 +232,7 @@ def predict_case(db: Session, case_id: UUID, as_of: datetime | None) -> Predicti
     )
     existing = ml_repository.get_prediction_by_fingerprint(db, fingerprint)
     if existing is not None:
-        return _read(existing)
+        return _read(existing, reused=True)
     frame = pd.DataFrame([features], columns=FEATURE_NAMES)
     pipeline = artifact["pipeline"]
     score = float(pipeline.predict_proba(frame)[0, list(pipeline.classes_).index(1)])
@@ -263,7 +264,7 @@ def predict_case(db: Session, case_id: UUID, as_of: datetime | None) -> Predicti
         db.rollback()
         existing = ml_repository.get_prediction_by_fingerprint(db, fingerprint)
         if existing is not None:
-            return _read(existing)
+            return _read(existing, reused=True)
         raise PersistenceError("No fue posible persistir la predicción") from exc
     prediction.commercial_case = db.get(CommercialCase, case_id)
     prediction.model_run = model_run

@@ -35,6 +35,7 @@ class PredictionRead(BaseModel):
     reason: str | None = None
     top_factors: list[RiskFactor] = Field(default_factory=list)
     predicted_at: datetime | None = None
+    prediction_reused: bool = False
 
 
 class PredictionList(BaseModel):

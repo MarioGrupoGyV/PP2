@@ -30,6 +30,16 @@ import type {
   Prediction,
   PredictionList,
 } from "../types/predictions";
+import type {
+  Alert,
+  AlertAction,
+  AlertBatchResult,
+  AlertDetail,
+  AlertList,
+  AlertStatus,
+  AlertSummary,
+} from "../types/alerts";
+import type { RiskLevel } from "../types/predictions";
 
 const API_URL = (import.meta.env.VITE_API_URL || "http://localhost:8000").replace(
   /\/$/,
@@ -222,4 +232,69 @@ export function predictCase(caseId: string, asOf?: string): Promise<Prediction> 
     },
     30_000,
   );
+}
+
+export function getAlerts(filters: {
+  status?: AlertStatus | "";
+  riskLevel?: RiskLevel | "";
+  caseCode?: string;
+  pageSize?: number;
+} = {}): Promise<AlertList> {
+  const parameters = new URLSearchParams({
+    page: "1",
+    page_size: String(filters.pageSize ?? 100),
+  });
+  if (filters.status) parameters.set("status", filters.status);
+  if (filters.riskLevel) parameters.set("risk_level", filters.riskLevel);
+  if (filters.caseCode) parameters.set("case_code", filters.caseCode);
+  return requestJson<AlertList>(`/api/v1/alerts?${parameters}`);
+}
+
+export function getAlertSummary(): Promise<AlertSummary> {
+  return requestJson<AlertSummary>("/api/v1/alerts/summary");
+}
+
+export function getAlert(id: string): Promise<AlertDetail> {
+  return requestJson<AlertDetail>(`/api/v1/alerts/${id}`);
+}
+
+export function getAlertActions(id: string): Promise<AlertAction[]> {
+  return requestJson<AlertAction[]>(`/api/v1/alerts/${id}/actions`);
+}
+
+export function evaluateAlerts(asOf?: string): Promise<AlertBatchResult> {
+  return requestJson<AlertBatchResult>(
+    "/api/v1/alerts/evaluate",
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ as_of: asOf, limit: 100 }),
+    },
+    120_000,
+  );
+}
+
+export function transitionAlert(
+  id: string,
+  action: "attend" | "resolve" | "dismiss",
+  actor: string,
+  notes: string,
+): Promise<AlertDetail> {
+  return requestJson<AlertDetail>(`/api/v1/alerts/${id}/${action}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ actor: actor || null, notes: notes || null }),
+  });
+}
+
+export function addAlertNote(id: string, actor: string, notes: string): Promise<AlertAction> {
+  return requestJson<AlertAction>(`/api/v1/alerts/${id}/actions`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ actor: actor || null, notes }),
+  });
+}
+
+export function getCaseAlerts(caseId: string): Promise<Alert[]> {
+  return requestJson<Alert[]>(`/api/v1/cases/${caseId}/alerts`);
 }

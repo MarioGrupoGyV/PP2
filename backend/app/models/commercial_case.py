@@ -9,6 +9,7 @@ from app.core.database import Base
 from app.models.enums import CaseStatus
 
 if TYPE_CHECKING:
+    from app.models.alert import Alert
     from app.models.deviation import Deviation
     from app.models.event import Event
     from app.models.process_stage import ProcessStage
@@ -71,6 +72,10 @@ class CommercialCase(Base):
         passive_deletes=True,
     )
     predictions: Mapped[list["Prediction"]] = relationship(
+        back_populates="commercial_case",
+        passive_deletes=True,
+    )
+    alerts: Mapped[list["Alert"]] = relationship(
         back_populates="commercial_case",
         passive_deletes=True,
     )

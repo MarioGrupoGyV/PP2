@@ -15,7 +15,7 @@ export function HomePage() {
           <header className="max-w-3xl">
             <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-teal-200 bg-white/80 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-teal-700 shadow-sm backdrop-blur">
               <span className="h-2 w-2 rounded-full bg-teal-500" />
-              Sprint 4 · Desviaciones
+              Sprint 6 · Alertas predictivas
             </div>
             <h1 className="text-3xl font-bold tracking-tight text-slate-950 sm:text-5xl sm:leading-[1.08]">
               Sistema de minería de procesos con alertas predictivas
@@ -27,6 +27,12 @@ export function HomePage() {
           </header>
 
           <div className="flex shrink-0 flex-col gap-3 sm:items-stretch">
+            <a
+              href="/alerts"
+              className="inline-flex items-center justify-center rounded-xl bg-rose-700 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-rose-700/15 transition hover:bg-rose-800"
+            >
+              Alertas predictivas
+            </a>
             <a
               href="/predictions"
               className="inline-flex items-center justify-center rounded-xl bg-violet-700 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-violet-700/15 transition hover:bg-violet-800"
