@@ -1,0 +1,4 @@
+export function Topbar({ onMenu, menuOpen }: { onMenu: () => void; menuOpen: boolean }) {
+  const notice = import.meta.env.VITE_DATASET_NOTICE || "Datos simulados de demostración";
+  return <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-line bg-white/95 px-4 backdrop-blur sm:px-6"><div className="flex items-center gap-3"><button type="button" aria-label="Abrir navegación" aria-controls="primary-navigation" aria-expanded={menuOpen} onClick={onMenu} className="rounded-lg border border-line px-3 py-2 font-bold lg:hidden">Menú</button><div><p className="text-sm font-bold text-ink-950">Minería y alertas predictivas</p><p className="hidden text-xs text-muted sm:block">Gestión comercial inmobiliaria</p></div></div><span className="rounded-md border border-blue-200 bg-blue-50 px-2.5 py-1.5 text-xs font-semibold text-blue-900">{notice}</span></header>;
+}

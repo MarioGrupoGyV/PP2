@@ -25,7 +25,6 @@ import type {
 } from "../types/deviations";
 import type {
   ActiveModel,
-  CommercialCaseLookup,
   ModelEvaluation,
   Prediction,
   PredictionList,
@@ -35,16 +34,30 @@ import type {
   AlertAction,
   AlertBatchResult,
   AlertDetail,
+  AlertEvaluation,
   AlertList,
   AlertStatus,
   AlertSummary,
 } from "../types/alerts";
 import type { RiskLevel } from "../types/predictions";
+import type {
+  CaseConformance,
+  CaseEvent,
+  CommercialCase,
+  CommercialCaseList,
+  ProcessStage,
+} from "../types/cases";
 
 const API_URL = (import.meta.env.VITE_API_URL || "http://localhost:8000").replace(
   /\/$/,
   "",
 );
+
+class ApiError extends Error {
+  constructor(message: string, readonly status: number) {
+    super(message);
+  }
+}
 
 async function requestJson<T>(
   path: string,
@@ -72,7 +85,7 @@ async function requestJson<T>(
       } catch {
         // La respuesta puede no contener JSON en errores de red o proxy.
       }
-      throw new Error(message);
+      throw new ApiError(message, response.status);
     }
 
     return (await response.json()) as T;
@@ -216,10 +229,54 @@ export function getRecentPredictions(): Promise<PredictionList> {
   return requestJson<PredictionList>("/api/v1/predictions?page=1&page_size=20");
 }
 
-export function getCaseByCode(caseCode: string): Promise<CommercialCaseLookup> {
-  return requestJson<CommercialCaseLookup>(
+export function getPredictions(filters: {
+  riskLevel?: RiskLevel;
+  predictedLabel?: boolean;
+  pageSize?: number;
+} = {}): Promise<PredictionList> {
+  const parameters = new URLSearchParams({ page: "1", page_size: String(filters.pageSize ?? 100) });
+  if (filters.riskLevel) parameters.set("risk_level", filters.riskLevel);
+  if (filters.predictedLabel != null) parameters.set("predicted_label", String(filters.predictedLabel));
+  return requestJson<PredictionList>(`/api/v1/predictions?${parameters}`);
+}
+
+export function getCaseByCode(caseCode: string): Promise<CommercialCase> {
+  return requestJson<CommercialCase>(
     `/api/v1/cases/code/${encodeURIComponent(caseCode)}`,
   );
+}
+
+export function getCases(page = 1, pageSize = 20): Promise<CommercialCaseList> {
+  return requestJson<CommercialCaseList>(`/api/v1/cases?page=${page}&page_size=${pageSize}`);
+}
+
+export function getCase(caseId: string): Promise<CommercialCase> {
+  return requestJson<CommercialCase>(`/api/v1/cases/${caseId}`);
+}
+
+export function getProcessStages(): Promise<ProcessStage[]> {
+  return requestJson<ProcessStage[]>("/api/v1/process-stages");
+}
+
+export function getCaseEvents(caseId: string): Promise<CaseEvent[]> {
+  return requestJson<CaseEvent[]>(`/api/v1/cases/${caseId}/events`);
+}
+
+export function getCaseConformance(caseId: string): Promise<CaseConformance> {
+  return requestJson<CaseConformance>(`/api/v1/cases/${caseId}/conformance`);
+}
+
+export function getCaseDeviations(caseId: string): Promise<Deviation[]> {
+  return requestJson<Deviation[]>(`/api/v1/cases/${caseId}/deviations`);
+}
+
+export async function getCasePrediction(caseId: string): Promise<Prediction | null> {
+  try {
+    return await requestJson<Prediction>(`/api/v1/cases/${caseId}/prediction`);
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 404) return null;
+    throw error;
+  }
 }
 
 export function predictCase(caseId: string, asOf?: string): Promise<Prediction> {
@@ -297,4 +354,16 @@ export function addAlertNote(id: string, actor: string, notes: string): Promise<
 
 export function getCaseAlerts(caseId: string): Promise<Alert[]> {
   return requestJson<Alert[]>(`/api/v1/cases/${caseId}/alerts`);
+}
+
+export function evaluateCaseAlert(caseId: string, asOf?: string): Promise<AlertEvaluation> {
+  return requestJson<AlertEvaluation>(
+    `/api/v1/cases/${caseId}/alerts/evaluate`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(asOf ? { as_of: asOf } : {}),
+    },
+    30_000,
+  );
 }

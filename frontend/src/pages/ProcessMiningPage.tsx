@@ -123,12 +123,7 @@ export function ProcessMiningPage() {
   return (
     <main className="min-h-screen bg-slate-50 px-4 py-7 sm:px-8 lg:py-10">
       <section className="mx-auto max-w-[1500px]">
-        <nav className="mb-7 flex flex-wrap items-center justify-between gap-3">
-          <a href="/" className="text-sm font-semibold text-slate-600 hover:text-slate-950">
-            ← Estado técnico
-          </a>
-          <div className="flex gap-2"><a href="/deviations" className="rounded-lg bg-amber-600 px-3 py-2 text-sm font-semibold text-white hover:bg-amber-700">Ver desviaciones</a><a href="/imports" className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:border-teal-500 hover:text-teal-700">Importar Event Log</a></div>
-        </nav>
+        <div className="mb-7 flex justify-end gap-2"><a href="/deviations" className="rounded-lg bg-amber-600 px-3 py-2 text-sm font-semibold text-white hover:bg-amber-700">Ver desviaciones</a><a href="/imports" className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:border-teal-500 hover:text-teal-700">Importar Event Log</a></div>
 
         <header className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-3xl">

@@ -1,0 +1,15 @@
+{
+  "active_model": {
+    "artifact_sha256": "f59a0df6024a2d7c561ab917c652ec4d0f64d1451a070c232871304fa3cf5ca9",
+    "model_version": "next-deviation-v1-20260920T152325973583Z-da48007b"
+  },
+  "deviations": {
+    "count": 883,
+    "sha256": "fa3efe22c38727a3440776a4dbdaea19599432c3b9a6a1124d70d6145b3630cb"
+  },
+  "events": {
+    "count": 2209,
+    "sha256": "d4d3ffc3834edc68074ebdf7377862cdab9a6bc62acf598ede883c382d84ffe0"
+  },
+  "methodology": "gyv-integrity-v1"
+}

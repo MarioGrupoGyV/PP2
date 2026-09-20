@@ -11,6 +11,7 @@ import type {
   ImportPreview,
   ImportResult,
 } from "../types/imports";
+import { formatDateTime } from "../shared/utils/format";
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
@@ -18,13 +19,6 @@ function formatBytes(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
-
-function formatDate(value: string): string {
-  return new Intl.DateTimeFormat("es-PE", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(new Date(value));
 }
 
 function errorMessage(error: unknown): string {
@@ -110,20 +104,14 @@ export function ImportsPage() {
   return (
     <main className="min-h-screen bg-slate-50 px-4 py-8 sm:px-8 lg:py-12">
       <section className="mx-auto max-w-6xl">
-        <nav className="mb-8 flex items-center justify-between">
-          <a
-            href="/"
-            className="text-sm font-semibold text-slate-600 transition hover:text-slate-950"
-          >
-            ← Estado técnico
-          </a>
+        <div className="mb-8 flex justify-end">
           <a
             href={getImportTemplateUrl()}
             className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:border-teal-500 hover:text-teal-700"
           >
             Descargar template CSV
           </a>
-        </nav>
+        </div>
 
         <header className="mb-8 max-w-3xl">
           <div className="mb-4 inline-flex rounded-full bg-teal-100 px-3 py-1 text-xs font-bold uppercase tracking-[0.14em] text-teal-700">
@@ -333,7 +321,7 @@ export function ImportsPage() {
                   <li key={item.id} className="py-4 first:pt-0 last:pb-0">
                     <p className="truncate text-sm font-bold text-slate-800">{item.filename}</p>
                     <p className="mt-1 text-xs text-slate-500">
-                      {item.imported_events.toLocaleString("es-PE")} eventos · {formatDate(item.created_at)}
+                      {item.imported_events.toLocaleString("es-PE")} eventos · {formatDateTime(item.created_at)}
                     </p>
                     {item.skipped_duplicates > 0 && (
                       <p className="mt-1 text-xs font-semibold text-amber-700">

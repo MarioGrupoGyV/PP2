@@ -67,8 +67,3 @@ export interface ModelEvaluation {
   split_summary: Record<string, number>;
   selection_reason: string;
 }
-
-export interface CommercialCaseLookup {
-  id: string;
-  case_code: string;
-}

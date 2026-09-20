@@ -1,6 +1,6 @@
 # Sistema de minería de procesos con alertas predictivas para detectar desviaciones en la gestión comercial inmobiliaria
 
-Sistema en evolución para representar, descubrir y contrastar el proceso comercial inmobiliario desde un Event Log. Los Sprints 0–4 implementaron infraestructura, persistencia, importación trazable, Process Mining y detección histórica de desviaciones; el Sprint 5 incorpora la estimación ML de riesgo `NEXT_DEVIATION`. Todavía no incluye alertas ni autenticación.
+Sistema para representar, descubrir y contrastar el proceso comercial inmobiliario desde un Event Log. Los Sprints 0–6 implementaron infraestructura, persistencia, importación trazable, Process Mining, detección histórica de desviaciones, estimación ML de riesgo `NEXT_DEVIATION` y gestión de alertas predictivas. Sprint 7 integra esos módulos en una experiencia web coherente para G&V. La autenticación permanece fuera del alcance actual.
 
 ## Arquitectura
 
@@ -62,7 +62,7 @@ Se usa una única aplicación backend; no hay microservicios. PostgreSQL mantien
 └── docker-compose.yml
 ```
 
-La API usa routers separados bajo `/api/v1`. Process Mining, desviaciones y predicción de riesgo están implementados; alertas y notificaciones permanecen pendientes.
+La API usa routers separados bajo `/api/v1`. Process Mining, desviaciones, predicción de riesgo y alertas están implementados; las notificaciones externas permanecen pendientes.
 
 ## Requisitos
 
@@ -158,7 +158,7 @@ npm run dev
 
 | Recurso | URL |
 |---|---|
-| Página técnica | http://localhost:5173 |
+| Aplicación G&V | http://localhost:5173 |
 | API | http://localhost:8000 |
 | Swagger UI | http://localhost:8000/docs |
 | OpenAPI | http://localhost:8000/openapi.json |
@@ -204,6 +204,28 @@ npm run build
 # Configuración de contenedores
 docker compose config
 ```
+
+La comprobación protegida de Sprint 7 se ejecuta, con PostgreSQL disponible, desde `backend`:
+
+```bash
+python -m scripts.check_data_integrity
+```
+
+La metodología y el baseline inicial se encuentran en [`docs/ui-integration.md`](docs/ui-integration.md) y [`docs/integrity-sprint7-baseline.json`](docs/integrity-sprint7-baseline.json).
+
+## Sprint 7 — Integración de aplicación y experiencia de uso
+
+La interfaz final incorpora:
+
+- App Shell responsive con Sidebar y Topbar;
+- Dashboard con datos reales de los endpoints existentes;
+- listado paginado en `/cases` y detalle integral en `/cases/:id`;
+- navegación cruzada entre casos, minería, desviaciones, predicciones y alertas;
+- etiquetas, formatos, badges y estados visuales compartidos;
+- aviso configurable de datos simulados;
+- modo demostración dinámico en `/demo`, con candidatos HIGH y LOW obtenidos de la base de datos.
+
+La documentación de decisiones, arquitectura visual, guion de 3–5 minutos y limitaciones está en [`docs/ui-integration.md`](docs/ui-integration.md). Sprint 7 no añade endpoints, migraciones, lógica ML, reglas de desviaciones ni reglas de alertas.
 
 ## Alcance del Sprint 0
 
