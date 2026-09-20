@@ -21,11 +21,13 @@ La correspondencia con PM4Py es:
 | Columna PM4Py | Origen |
 |---|---|
 | `case:concept:name` | `commercial_cases.case_code` |
-| `concept:name` | `events.activity` |
+| `concept:name` | `process_stages.code` |
+| `activity:label` | `process_stages.name` |
+| `event:original_activity` | `events.activity` |
 | `time:timestamp` | `events.timestamp`, normalizado a UTC |
 | `org:resource` | `events.resource` |
 
-La transformación mantiene columnas auxiliares internas para relacionar cada variante con sus casos, pero no modifica eventos ni casos persistidos.
+La transformación mantiene columnas auxiliares internas para relacionar cada variante con sus casos, pero no modifica eventos ni casos persistidos. El código de etapa es la identidad estable: dos textos originales distintos asociados a la misma etapa forman una única actividad canónica.
 
 ## Descubrimiento
 
@@ -63,6 +65,8 @@ Los tiempos describen lo observado. No se interpretan como reglas de SLA.
 - `GET /api/v1/process-mining/summary`
 - `GET /api/v1/process-mining/activities`
 - `GET /api/v1/process-mining/transitions`
+- `GET /api/v1/process-mining/expected-model`
+- `GET /api/v1/process-mining/conformance`
 
 Las respuestas son contratos Pydantic simples y no exponen objetos internos de PM4Py. Cuando el Event Log está vacío, los endpoints generales devuelven colecciones y métricas vacías; consultar una variante inexistente responde `404`.
 
@@ -96,6 +100,4 @@ No se agregó ninguna tabla ni migración en Sprint 3. Los resultados se recalcu
 
 PM4Py Community Edition `2.7.23.8` se distribuye bajo AGPL-3.0-or-later. Si el sistema se distribuye o presta como servicio sin abrir el código correspondiente, debe evaluarse la licencia comercial ofrecida por el proveedor.
 
-## Fuera de alcance
-
-Sprint 3 no implementa conformance checking, modelos esperados, reglas de SLA, clasificación formal de rutas, riesgo, Machine Learning, predicciones ni alertas.
+Desde Sprint 4, el modelo esperado y la conformidad se exponen por endpoints separados y se documentan en `deviations.md`. PM4Py continúa describiendo el proceso observado; las reglas no dependen de los CSV ni del ground truth.

@@ -35,7 +35,7 @@ def create_process_mining_data(client: TestClient) -> None:
             (qualified, "Calificado", "2026-09-02T15:00:00Z"),
         ],
         "CASE-C": [
-            (lead, "Lead", "2026-09-03T09:00:00Z"),
+            (lead, "Lead creado desde formulario", "2026-09-03T09:00:00Z"),
             (qualified, "Calificado", "2026-09-03T14:00:00Z"),
         ],
     }

@@ -9,6 +9,7 @@ from app.core.database import Base
 from app.models.enums import CaseStatus
 
 if TYPE_CHECKING:
+    from app.models.deviation import Deviation
     from app.models.event import Event
     from app.models.process_stage import ProcessStage
 
@@ -61,6 +62,10 @@ class CommercialCase(Base):
         back_populates="commercial_cases",
     )
     events: Mapped[list["Event"]] = relationship(
+        back_populates="commercial_case",
+        passive_deletes=True,
+    )
+    deviations: Mapped[list["Deviation"]] = relationship(
         back_populates="commercial_case",
         passive_deletes=True,
     )

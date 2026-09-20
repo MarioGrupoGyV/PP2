@@ -12,8 +12,11 @@ from app.schemas.process_mining import (
     TransitionStatistic,
     VariantCasesResponse,
     VariantStatistic,
+    ExpectedModel,
 )
 from app.services import process_mining_service
+from app.services import deviation_service
+from app.schemas.deviation import ConformanceSummary
 
 router = APIRouter()
 DbSession = Annotated[Session, Depends(get_db)]
@@ -68,3 +71,13 @@ def get_activities(db: DbSession) -> list[ActivityStatistic]:
 @router.get("/transitions", response_model=list[TransitionStatistic])
 def get_transitions(db: DbSession) -> list[TransitionStatistic]:
     return process_mining_service.get_transitions(db)
+
+
+@router.get("/expected-model", response_model=ExpectedModel)
+def get_expected_model(db: DbSession) -> ExpectedModel:
+    return process_mining_service.get_expected_model(db)
+
+
+@router.get("/conformance", response_model=ConformanceSummary)
+def get_conformance(db: DbSession) -> ConformanceSummary:
+    return deviation_service.get_conformance_summary(db)

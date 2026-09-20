@@ -26,6 +26,7 @@ const NODE_HEIGHT = 82;
 
 type ActivityNodeData = {
   activity: string;
+  label: string;
   frequency: number;
   caseFrequency: number;
 };
@@ -46,7 +47,8 @@ function ActivityNode({ data, selected }: NodeProps<ActivityFlowNode>) {
       }`}
     >
       <Handle type="target" position={Position.Left} className="!bg-slate-400" />
-      <p className="truncate text-sm font-bold text-slate-900">{data.activity}</p>
+      <p className="truncate text-sm font-bold text-slate-900">{data.label}</p>
+      <p className="text-[10px] font-bold tracking-wide text-teal-700">{data.activity}</p>
       <p className="mt-1 text-xs font-medium text-slate-500">
         {data.frequency.toLocaleString("es-PE")} eventos ·{" "}
         {data.caseFrequency.toLocaleString("es-PE")} casos
@@ -93,6 +95,7 @@ function layoutGraph(
       },
       data: {
         activity: node.activity,
+        label: node.label,
         frequency: node.frequency,
         caseFrequency: node.case_frequency,
       },

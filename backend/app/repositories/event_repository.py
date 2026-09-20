@@ -93,11 +93,14 @@ def list_for_process_mining(db: Session) -> list[dict[str, object]]:
         select(
             CommercialCase.id.label("case_id"),
             CommercialCase.case_code.label("case_code"),
-            Event.activity,
+            ProcessStage.code.label("stage_code"),
+            ProcessStage.name.label("stage_name"),
+            Event.activity.label("original_activity"),
             Event.timestamp,
             Event.resource,
         )
         .join(CommercialCase, CommercialCase.id == Event.case_id)
+        .join(ProcessStage, ProcessStage.id == Event.stage_id)
         .where(Event.event_type == EventType.STAGE_CHANGE)
         .order_by(
             CommercialCase.case_code,

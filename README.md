@@ -1,6 +1,6 @@
 # Sistema de minería de procesos con alertas predictivas para detectar desviaciones en la gestión comercial inmobiliaria
 
-Sistema en evolución para representar y descubrir el proceso comercial inmobiliario desde un Event Log. Los Sprints 0–2 implementaron infraestructura, persistencia e importación trazable; el Sprint 3 incorpora descubrimiento de procesos con PM4Py, un Directly-Follows Graph y análisis de variantes. Todavía no incluye conformance checking, Machine Learning ni autenticación.
+Sistema en evolución para representar, descubrir y contrastar el proceso comercial inmobiliario desde un Event Log. Los Sprints 0–3 implementaron infraestructura, persistencia, importación trazable y descubrimiento con PM4Py; el Sprint 4 incorpora un modelo esperado configurable, conformance checking y detección histórica de desviaciones. Todavía no incluye Machine Learning, alertas predictivas ni autenticación.
 
 ## Arquitectura
 
@@ -62,7 +62,7 @@ Se usa una única aplicación backend; no hay microservicios. PostgreSQL mantien
 └── docker-compose.yml
 ```
 
-La API usa routers separados bajo `/api/v1`. Los módulos de Process Mining, desviaciones, predicciones, alertas y dashboard permanecen pendientes.
+La API usa routers separados bajo `/api/v1`. Process Mining y desviaciones están implementados; predicciones, alertas y un dashboard predictivo permanecen pendientes.
 
 ## Requisitos
 
@@ -401,7 +401,7 @@ Sprint 3 analiza bajo demanda los eventos `STAGE_CHANGE` almacenados en PostgreS
 | PostgreSQL | PM4Py |
 |---|---|
 | `commercial_cases.case_code` | `case:concept:name` |
-| `events.activity` | `concept:name` |
+| `process_stages.code` | `concept:name` |
 | `events.timestamp` | `time:timestamp` |
 | `events.resource` | `org:resource` |
 
@@ -429,6 +429,21 @@ curl "http://localhost:8000/api/v1/process-mining/variants?limit=20"
 
 PM4Py Community Edition se distribuye bajo AGPL-3.0-or-later. Antes de un despliegue comercial cerrado debe revisarse la compatibilidad de licencia o adquirirse la licencia correspondiente del proveedor.
 
-## Pendiente para Sprint 4
+## Sprint 4 — Desviaciones y conformidad
 
-Permanecen fuera de alcance conformance checking, comparación contra un proceso esperado, clasificación de rutas, reglas automáticas de SLA, detección formal, Machine Learning, predicciones y alertas.
+Sprint 4 compara los eventos persistidos con las etapas activas configuradas en `process_stages`. La identidad canónica usada por Process Mining es `process_stages.code`; `events.activity` se conserva como descripción original. Las reglas, contratos y decisiones se documentan en [`docs/deviations.md`](docs/deviations.md).
+
+| Método | Ruta | Propósito |
+|---|---|---|
+| `POST` | `/api/v1/deviations/analyze` | Ejecutar las cinco reglas de forma idempotente. |
+| `GET` | `/api/v1/deviations` | Listar y filtrar desviaciones. |
+| `GET` | `/api/v1/deviations/summary` | Resumir casos, tipos y severidades. |
+| `GET` | `/api/v1/deviations/{id}` | Consultar el detalle. |
+| `GET` | `/api/v1/cases/{id}/deviations` | Obtener el timeline de desviaciones de un caso. |
+| `GET` | `/api/v1/cases/{id}/conformance` | Consultar conformidad estructural y temporal. |
+| `GET` | `/api/v1/process-mining/expected-model` | Obtener etapas y SLA esperados. |
+| `GET` | `/api/v1/process-mining/conformance` | Obtener el resumen global de conformidad. |
+
+La interfaz se encuentra en http://localhost:5173/deviations. El umbral histórico de inactividad se configura mediante `DEVIATION_INACTIVITY_HOURS` (72 horas por defecto).
+
+Permanecen fuera de alcance Machine Learning, predicciones, alertas en tiempo real y workflows de resolución.

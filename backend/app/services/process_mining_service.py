@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 
 from app.core.exceptions import ProcessMiningError, ResourceNotFoundError
 from app.repositories import event_repository
+from app.repositories import process_stage_repository
 from app.schemas.process_mining import (
     ActivityBoundary,
     ActivityStatistic,
@@ -21,6 +22,8 @@ from app.schemas.process_mining import (
     VariantCase,
     VariantCasesResponse,
     VariantStatistic,
+    ExpectedModel,
+    ExpectedStage,
 )
 
 logger = logging.getLogger(__name__)
@@ -30,12 +33,16 @@ ACTIVITY_COLUMN = "concept:name"
 TIMESTAMP_COLUMN = "time:timestamp"
 RESOURCE_COLUMN = "org:resource"
 CASE_ID_COLUMN = "case:id"
+ACTIVITY_LABEL_COLUMN = "activity:label"
+ORIGINAL_ACTIVITY_COLUMN = "event:original_activity"
 EVENT_LOG_COLUMNS = [
     CASE_COLUMN,
     ACTIVITY_COLUMN,
     TIMESTAMP_COLUMN,
     RESOURCE_COLUMN,
     CASE_ID_COLUMN,
+    ACTIVITY_LABEL_COLUMN,
+    ORIGINAL_ACTIVITY_COLUMN,
 ]
 
 
@@ -66,6 +73,8 @@ def _empty_event_log() -> pd.DataFrame:
             TIMESTAMP_COLUMN: pd.Series(dtype="datetime64[ns, UTC]"),
             RESOURCE_COLUMN: pd.Series(dtype="string"),
             CASE_ID_COLUMN: pd.Series(dtype="string"),
+            ACTIVITY_LABEL_COLUMN: pd.Series(dtype="string"),
+            ORIGINAL_ACTIVITY_COLUMN: pd.Series(dtype="string"),
         }
     )
 
@@ -79,7 +88,9 @@ def build_event_log_dataframe(db: Session) -> pd.DataFrame:
     dataframe = pd.DataFrame.from_records(records).rename(
         columns={
             "case_code": CASE_COLUMN,
-            "activity": ACTIVITY_COLUMN,
+            "stage_code": ACTIVITY_COLUMN,
+            "stage_name": ACTIVITY_LABEL_COLUMN,
+            "original_activity": ORIGINAL_ACTIVITY_COLUMN,
             "timestamp": TIMESTAMP_COLUMN,
             "resource": RESOURCE_COLUMN,
             "case_id": CASE_ID_COLUMN,
@@ -89,6 +100,8 @@ def build_event_log_dataframe(db: Session) -> pd.DataFrame:
     dataframe[ACTIVITY_COLUMN] = dataframe[ACTIVITY_COLUMN].astype("string")
     dataframe[RESOURCE_COLUMN] = dataframe[RESOURCE_COLUMN].astype("string")
     dataframe[CASE_ID_COLUMN] = dataframe[CASE_ID_COLUMN].astype("string")
+    dataframe[ACTIVITY_LABEL_COLUMN] = dataframe[ACTIVITY_LABEL_COLUMN].astype("string")
+    dataframe[ORIGINAL_ACTIVITY_COLUMN] = dataframe[ORIGINAL_ACTIVITY_COLUMN].astype("string")
     dataframe[TIMESTAMP_COLUMN] = pd.to_datetime(
         dataframe[TIMESTAMP_COLUMN],
         utc=True,
@@ -132,6 +145,12 @@ def _activity_statistics(dataframe: pd.DataFrame) -> list[ActivityStatistic]:
         [
             ActivityStatistic(
                 activity=str(activity),
+                label=str(
+                    dataframe.loc[
+                        dataframe[ACTIVITY_COLUMN] == activity,
+                        ACTIVITY_LABEL_COLUMN,
+                    ].iloc[0]
+                ),
                 frequency=int(frequency),
                 case_frequency=int(case_frequencies.loc[activity]),
             )
@@ -281,6 +300,7 @@ def get_dfg(db: Session) -> DfgResponse:
         nodes=[
             DfgNode(
                 activity=item.activity,
+                label=item.label,
                 frequency=item.frequency,
                 case_frequency=item.case_frequency,
             )
@@ -300,6 +320,7 @@ def get_dfg(db: Session) -> DfgResponse:
         start_activities=[
             ActivityBoundary(
                 activity=activity,
+                label=activities_by_name[activity].label,
                 frequency=frequency,
                 percentage=_percentage(frequency, total_cases),
             )
@@ -311,6 +332,7 @@ def get_dfg(db: Session) -> DfgResponse:
         end_activities=[
             ActivityBoundary(
                 activity=activity,
+                label=activities_by_name[activity].label,
                 frequency=frequency,
                 percentage=_percentage(frequency, total_cases),
             )
@@ -390,3 +412,18 @@ def get_activities(db: Session) -> list[ActivityStatistic]:
 
 def get_transitions(db: Session) -> list[TransitionStatistic]:
     return _analyze_database(db).transitions
+
+
+def get_expected_model(db: Session) -> ExpectedModel:
+    stages = [stage for stage in process_stage_repository.list_all(db) if stage.active]
+    return ExpectedModel(
+        stages=[
+            ExpectedStage(
+                code=stage.code,
+                name=stage.name,
+                sequence=stage.sequence,
+                sla_hours=stage.sla_hours,
+            )
+            for stage in stages
+        ]
+    )

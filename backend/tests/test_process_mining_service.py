@@ -22,6 +22,9 @@ def test_event_log_transformation_uses_pm4py_columns_and_stage_changes(
     assert len(dataframe) == 8
     assert dataframe["case:concept:name"].nunique() == 3
     assert "Llamada de seguimiento" not in set(dataframe["concept:name"])
+    assert "Lead creado desde formulario" not in set(dataframe["concept:name"])
+    assert "Lead creado desde formulario" in set(dataframe["event:original_activity"])
+    assert set(dataframe.loc[dataframe["concept:name"] == "LEAD", "activity:label"]) == {"Lead"}
     assert str(dataframe["time:timestamp"].dtype).endswith("UTC]")
     for _, group in dataframe.groupby("case:concept:name"):
         assert group["time:timestamp"].is_monotonic_increasing
@@ -38,6 +41,8 @@ def test_empty_event_log_is_supported(db_session: Session) -> None:
         "time:timestamp",
         "org:resource",
         "case:id",
+        "activity:label",
+        "event:original_activity",
     ]
     assert analysis.frequency_dfg == {}
     assert analysis.variants == {}
@@ -50,15 +55,15 @@ def test_dfg_frequencies_start_and_end_activities(client, db_session: Session) -
 
     edges = {(edge.source, edge.target): edge.frequency for edge in result.edges}
     assert edges == {
-        ("Contactado", "Calificado"): 2,
-        ("Lead", "Contactado"): 2,
-        ("Lead", "Calificado"): 1,
+        ("CONTACTED", "QUALIFIED"): 2,
+        ("LEAD", "CONTACTED"): 2,
+        ("LEAD", "QUALIFIED"): 1,
     }
     assert [(item.activity, item.frequency) for item in result.start_activities] == [
-        ("Lead", 3)
+        ("LEAD", 3)
     ]
     assert [(item.activity, item.frequency) for item in result.end_activities] == [
-        ("Calificado", 3)
+        ("QUALIFIED", 3)
     ]
 
 
@@ -76,7 +81,7 @@ def test_variants_are_counted_and_identifiers_are_deterministic(
     assert [item.variant_id for item in first] == [
         item.variant_id for item in second
     ]
-    assert first[0].activities == ["Lead", "Contactado", "Calificado"]
+    assert first[0].activities == ["LEAD", "CONTACTED", "QUALIFIED"]
 
 
 def test_performance_and_summary_metrics(client, db_session: Session) -> None:
@@ -88,7 +93,7 @@ def test_performance_and_summary_metrics(client, db_session: Session) -> None:
     lead_contacted = next(
         item
         for item in transitions
-        if item.source == "Lead" and item.target == "Contactado"
+        if item.source == "LEAD" and item.target == "CONTACTED"
     )
     assert lead_contacted.average_duration_seconds == 5400
     assert lead_contacted.median_duration_seconds == 5400

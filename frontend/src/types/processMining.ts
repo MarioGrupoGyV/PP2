@@ -9,12 +9,14 @@ export interface ProcessMiningSummary {
 
 export interface ActivityBoundary {
   activity: string;
+  label: string;
   frequency: number;
   percentage: number;
 }
 
 export interface ActivityStatistic {
   activity: string;
+  label: string;
   frequency: number;
   case_frequency: number;
 }
@@ -64,4 +66,15 @@ export interface VariantCasesResponse {
 
 export interface PerformanceResponse {
   transitions: TransitionStatistic[];
+}
+
+export interface ExpectedStage {
+  code: string;
+  name: string;
+  sequence: number;
+  sla_hours: number;
+}
+
+export interface ExpectedModel {
+  stages: ExpectedStage[];
 }

@@ -11,6 +11,7 @@ from app.models.enums import EventType
 
 if TYPE_CHECKING:
     from app.models.commercial_case import CommercialCase
+    from app.models.deviation import Deviation
     from app.models.event_log_import import EventLogImport
     from app.models.process_stage import ProcessStage
 
@@ -78,4 +79,8 @@ class Event(Base):
     stage: Mapped["ProcessStage"] = relationship(back_populates="events")
     event_log_import: Mapped["EventLogImport | None"] = relationship(
         back_populates="events"
+    )
+    deviations: Mapped[list["Deviation"]] = relationship(
+        back_populates="event",
+        passive_deletes=True,
     )

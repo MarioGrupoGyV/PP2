@@ -15,7 +15,7 @@ export function HomePage() {
           <header className="max-w-3xl">
             <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-teal-200 bg-white/80 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-teal-700 shadow-sm backdrop-blur">
               <span className="h-2 w-2 rounded-full bg-teal-500" />
-              Sprint 3 · Process Mining
+              Sprint 4 · Desviaciones
             </div>
             <h1 className="text-3xl font-bold tracking-tight text-slate-950 sm:text-5xl sm:leading-[1.08]">
               Sistema de minería de procesos con alertas predictivas
@@ -27,6 +27,12 @@ export function HomePage() {
           </header>
 
           <div className="flex shrink-0 flex-col gap-3 sm:items-stretch">
+            <a
+              href="/deviations"
+              className="inline-flex items-center justify-center rounded-xl bg-amber-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-amber-600/15 transition hover:bg-amber-700"
+            >
+              Ver desviaciones
+            </a>
             <a
               href="/process-mining"
               className="inline-flex items-center justify-center rounded-xl bg-teal-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-teal-600/15 transition hover:bg-teal-700"

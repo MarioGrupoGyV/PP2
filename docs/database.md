@@ -102,12 +102,13 @@ Un mismo archivo no puede confirmarse dos veces. La relación con `events` permi
 
 ## Semántica del Event Log
 
-La futura integración con Process Mining utilizará esta correspondencia:
+La integración con Process Mining utiliza esta correspondencia desde Sprint 4:
 
 | Event Log | Origen |
 |---|---|
 | `case:concept:name` | `commercial_cases.case_code` |
-| `concept:name` | `events.activity` |
+| `concept:name` | `process_stages.code` a través de `events.stage_id` |
+| descripción original | `events.activity` |
 | `time:timestamp` | `events.timestamp` |
 
 Por tanto, el Event Log se apoya en tres conceptos mínimos: **Case ID, Activity y Timestamp**. Este sprint solo garantiza la persistencia compatible; no incluye PM4Py ni algoritmos de minería.
@@ -141,3 +142,7 @@ docker compose exec backend python -m scripts.seed_process_stages
 ```
 
 La revisión inicial del Sprint 1 es `20260919_0001`. La revisión del Sprint 2 es `20260919_0002` y puede revertirse sin eliminar tablas ni datos del Sprint 1.
+
+## `deviations` (Sprint 4)
+
+La revisión `20260920_0003` agrega desviaciones detectadas sin modificar las tablas ni migraciones anteriores. Cada registro referencia el caso y, cuando corresponde, el evento y la etapa. `expected_value`, `actual_value` y `details` son JSONB; `fingerprint` es un SHA-256 único que hace idempotente el análisis. Las claves foráneas usan `RESTRICT` y `resolved_at` queda disponible para un workflow futuro.

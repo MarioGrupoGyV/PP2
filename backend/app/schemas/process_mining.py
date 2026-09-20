@@ -5,12 +5,14 @@ from pydantic import BaseModel
 
 class ActivityBoundary(BaseModel):
     activity: str
+    label: str
     frequency: int
     percentage: float
 
 
 class ActivityStatistic(BaseModel):
     activity: str
+    label: str
     frequency: int
     case_frequency: int
 
@@ -73,3 +75,14 @@ class ProcessMiningSummary(BaseModel):
     total_variants: int
     average_case_duration_seconds: float
     median_case_duration_seconds: float
+
+
+class ExpectedStage(BaseModel):
+    code: str
+    name: str
+    sequence: int
+    sla_hours: int
+
+
+class ExpectedModel(BaseModel):
+    stages: list[ExpectedStage]

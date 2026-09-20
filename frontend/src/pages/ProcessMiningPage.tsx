@@ -93,6 +93,8 @@ export function ProcessMiningPage() {
       ) ?? null,
     [analysis],
   );
+  const activityLabel = (code: string) =>
+    analysis?.dfg.nodes.find((item) => item.activity === code)?.label ?? code;
 
   async function selectVariant(variant: VariantStatistic) {
     setSelectedVariant(variant);
@@ -125,12 +127,7 @@ export function ProcessMiningPage() {
           <a href="/" className="text-sm font-semibold text-slate-600 hover:text-slate-950">
             ← Estado técnico
           </a>
-          <a
-            href="/imports"
-            className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:border-teal-500 hover:text-teal-700"
-          >
-            Importar Event Log
-          </a>
+          <div className="flex gap-2"><a href="/deviations" className="rounded-lg bg-amber-600 px-3 py-2 text-sm font-semibold text-white hover:bg-amber-700">Ver desviaciones</a><a href="/imports" className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:border-teal-500 hover:text-teal-700">Importar Event Log</a></div>
         </nav>
 
         <header className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
@@ -229,13 +226,13 @@ export function ProcessMiningPage() {
                   </h3>
                   {selectedNode ? (
                     <dl className="mt-5 space-y-4">
-                      <div><dt className="text-xs text-slate-500">Actividad</dt><dd className="mt-1 font-bold text-slate-950">{selectedNode.activity}</dd></div>
+                      <div><dt className="text-xs text-slate-500">Actividad</dt><dd className="mt-1 font-bold text-slate-950">{selectedNode.label}</dd><dd className="text-xs font-semibold text-teal-700">{selectedNode.activity}</dd></div>
                       <div><dt className="text-xs text-slate-500">Eventos</dt><dd className="mt-1 text-2xl font-bold">{selectedNode.frequency.toLocaleString("es-PE")}</dd></div>
                       <div><dt className="text-xs text-slate-500">Casos</dt><dd className="mt-1 text-2xl font-bold">{selectedNode.case_frequency.toLocaleString("es-PE")}</dd></div>
                     </dl>
                   ) : selectedTransition ? (
                     <dl className="mt-5 space-y-4">
-                      <div><dt className="text-xs text-slate-500">Transición observada</dt><dd className="mt-1 font-bold text-slate-950">{selectedTransition.source} → {selectedTransition.target}</dd></div>
+                      <div><dt className="text-xs text-slate-500">Transición observada</dt><dd className="mt-1 font-bold text-slate-950">{activityLabel(selectedTransition.source)} → {activityLabel(selectedTransition.target)}</dd></div>
                       <div className="grid grid-cols-2 gap-3">
                         <div><dt className="text-xs text-slate-500">Frecuencia</dt><dd className="mt-1 text-xl font-bold">{selectedTransition.frequency}</dd></div>
                         <div><dt className="text-xs text-slate-500">Casos</dt><dd className="mt-1 text-xl font-bold">{selectedTransition.case_frequency}</dd></div>
@@ -255,7 +252,7 @@ export function ProcessMiningPage() {
                         Mayor duración observada
                       </p>
                       <p className="mt-2 text-sm font-semibold text-slate-800">
-                        {longestTransition.source} → {longestTransition.target}
+                        {activityLabel(longestTransition.source)} → {activityLabel(longestTransition.target)}
                       </p>
                       <p className="mt-1 text-sm text-slate-600">
                         Promedio: {formatDuration(longestTransition.average_duration_seconds)}
@@ -284,7 +281,7 @@ export function ProcessMiningPage() {
                           onClick={() => void selectVariant(variant)}
                           className={`cursor-pointer transition hover:bg-teal-50 ${selectedVariant?.variant_id === variant.variant_id ? "bg-teal-50" : ""}`}
                         >
-                          <td className="max-w-2xl px-4 py-3 font-semibold text-slate-800">{variant.activities.join(" → ")}</td>
+                          <td className="max-w-2xl px-4 py-3 font-semibold text-slate-800">{variant.activities.map(activityLabel).join(" → ")}</td>
                           <td className="px-4 py-3">{variant.case_count}</td>
                           <td className="px-4 py-3">{variant.percentage.toFixed(2)}%</td>
                         </tr>
@@ -305,7 +302,7 @@ export function ProcessMiningPage() {
                     <div className="flex flex-wrap gap-2">
                       {selectedVariant.activities.map((activity, index) => (
                         <span key={`${activity}-${index}`} className="rounded-lg bg-teal-50 px-2.5 py-1.5 text-xs font-semibold text-teal-800">
-                          {index > 0 ? "→ " : ""}{activity}
+                          {index > 0 ? "→ " : ""}{activityLabel(activity)}
                         </span>
                       ))}
                     </div>
@@ -343,7 +340,7 @@ export function ProcessMiningPage() {
                   <tbody className="divide-y divide-slate-100">
                     {analysis.transitions.map((item) => (
                       <tr key={`${item.source}-${item.target}`} onClick={() => selectTransition(item)} className="cursor-pointer hover:bg-teal-50">
-                        <td className="px-4 py-3 font-semibold text-slate-800">{item.source}</td><td className="px-4 py-3 font-semibold text-slate-800">{item.target}</td><td className="px-4 py-3">{item.frequency}</td><td className="px-4 py-3">{item.case_frequency}</td><td className="whitespace-nowrap px-4 py-3">{formatDuration(item.average_duration_seconds)}</td><td className="whitespace-nowrap px-4 py-3">{formatDuration(item.median_duration_seconds)}</td>
+                        <td className="px-4 py-3 font-semibold text-slate-800">{activityLabel(item.source)}<span className="block text-xs text-teal-700">{item.source}</span></td><td className="px-4 py-3 font-semibold text-slate-800">{activityLabel(item.target)}<span className="block text-xs text-teal-700">{item.target}</span></td><td className="px-4 py-3">{item.frequency}</td><td className="px-4 py-3">{item.case_frequency}</td><td className="whitespace-nowrap px-4 py-3">{formatDuration(item.average_duration_seconds)}</td><td className="whitespace-nowrap px-4 py-3">{formatDuration(item.median_duration_seconds)}</td>
                       </tr>
                     ))}
                   </tbody>

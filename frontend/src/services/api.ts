@@ -12,7 +12,17 @@ import type {
   TransitionStatistic,
   VariantCasesResponse,
   VariantStatistic,
+  ExpectedModel,
 } from "../types/processMining";
+import type {
+  AnalyzeDeviationsResult,
+  ConformanceSummary,
+  Deviation,
+  DeviationList,
+  DeviationSeverity,
+  DeviationSummary,
+  DeviationType,
+} from "../types/deviations";
 
 const API_URL = (import.meta.env.VITE_API_URL || "http://localhost:8000").replace(
   /\/$/,
@@ -139,4 +149,40 @@ export function getVariantCases(
     {},
     30_000,
   );
+}
+
+export function getExpectedModel(): Promise<ExpectedModel> {
+  return requestJson<ExpectedModel>("/api/v1/process-mining/expected-model");
+}
+
+export function getConformanceSummary(): Promise<ConformanceSummary> {
+  return requestJson<ConformanceSummary>("/api/v1/process-mining/conformance");
+}
+
+export function analyzeDeviations(): Promise<AnalyzeDeviationsResult> {
+  return requestJson<AnalyzeDeviationsResult>(
+    "/api/v1/deviations/analyze",
+    { method: "POST" },
+    60_000,
+  );
+}
+
+export function getDeviationSummary(): Promise<DeviationSummary> {
+  return requestJson<DeviationSummary>("/api/v1/deviations/summary");
+}
+
+export function getDeviations(filters: {
+  type?: DeviationType | "";
+  severity?: DeviationSeverity | "";
+  caseCode?: string;
+} = {}): Promise<DeviationList> {
+  const parameters = new URLSearchParams({ page: "1", page_size: "100" });
+  if (filters.type) parameters.set("type", filters.type);
+  if (filters.severity) parameters.set("severity", filters.severity);
+  if (filters.caseCode) parameters.set("case_code", filters.caseCode);
+  return requestJson<DeviationList>(`/api/v1/deviations?${parameters}`);
+}
+
+export function getDeviation(id: string): Promise<Deviation> {
+  return requestJson<Deviation>(`/api/v1/deviations/${id}`);
 }

@@ -22,7 +22,7 @@ settings = get_settings()
 app = FastAPI(
     title=settings.app_name,
     description="API base para la gestión comercial inmobiliaria.",
-    version="0.4.0",
+    version="0.5.0",
     lifespan=lifespan,
 )
 
