@@ -15,21 +15,27 @@ export function HomePage() {
           <header className="max-w-3xl">
             <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-teal-200 bg-white/80 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-teal-700 shadow-sm backdrop-blur">
               <span className="h-2 w-2 rounded-full bg-teal-500" />
-              Sprint 2 · Event Log
+              Sprint 3 · Process Mining
             </div>
             <h1 className="text-3xl font-bold tracking-tight text-slate-950 sm:text-5xl sm:leading-[1.08]">
               Sistema de minería de procesos con alertas predictivas
             </h1>
             <p className="mt-5 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">
-              Infraestructura y preparación del Event Log para la gestión
-              comercial inmobiliaria.
+              Descubrimiento y visualización del proceso comercial observado a
+              partir del Event Log persistido.
             </p>
           </header>
 
           <div className="flex shrink-0 flex-col gap-3 sm:items-stretch">
             <a
-              href="/imports"
+              href="/process-mining"
               className="inline-flex items-center justify-center rounded-xl bg-teal-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-teal-600/15 transition hover:bg-teal-700"
+            >
+              Ver minería de procesos
+            </a>
+            <a
+              href="/imports"
+              className="inline-flex items-center justify-center rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-teal-500 hover:text-teal-700"
             >
               Importar Event Log
             </a>

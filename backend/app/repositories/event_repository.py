@@ -86,3 +86,24 @@ def list_normalized(db: Session) -> list[dict[str, object]]:
         .order_by(CommercialCase.case_code, Event.timestamp, Event.id)
     )
     return [dict(row._mapping) for row in db.execute(statement).all()]
+
+
+def list_for_process_mining(db: Session) -> list[dict[str, object]]:
+    statement = (
+        select(
+            CommercialCase.id.label("case_id"),
+            CommercialCase.case_code.label("case_code"),
+            Event.activity,
+            Event.timestamp,
+            Event.resource,
+        )
+        .join(CommercialCase, CommercialCase.id == Event.case_id)
+        .where(Event.event_type == EventType.STAGE_CHANGE)
+        .order_by(
+            CommercialCase.case_code,
+            Event.timestamp,
+            Event.created_at,
+            Event.id,
+        )
+    )
+    return [dict(row._mapping) for row in db.execute(statement).all()]

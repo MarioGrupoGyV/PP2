@@ -6,6 +6,7 @@ from app.api.routes import (
     events,
     health,
     imports,
+    process_mining,
     process_stages,
 )
 
@@ -24,3 +25,8 @@ api_router.include_router(
 api_router.include_router(events.router, tags=["events"])
 api_router.include_router(imports.router, prefix="/imports", tags=["imports"])
 api_router.include_router(event_log.router, prefix="/event-log", tags=["event-log"])
+api_router.include_router(
+    process_mining.router,
+    prefix="/process-mining",
+    tags=["process-mining"],
+)

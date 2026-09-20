@@ -1,7 +1,10 @@
 import { HomePage } from "../pages/HomePage";
 import { ImportsPage } from "../pages/ImportsPage";
+import { ProcessMiningPage } from "../pages/ProcessMiningPage";
 
 export function App() {
   const path = window.location.pathname.replace(/\/$/, "") || "/";
-  return path === "/imports" ? <ImportsPage /> : <HomePage />;
+  if (path === "/imports") return <ImportsPage />;
+  if (path === "/process-mining") return <ProcessMiningPage />;
+  return <HomePage />;
 }

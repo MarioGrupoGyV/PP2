@@ -1,6 +1,6 @@
 # Sistema de minería de procesos con alertas predictivas para detectar desviaciones en la gestión comercial inmobiliaria
 
-Sistema en evolución para representar el proceso comercial inmobiliario como un Event Log. El Sprint 0 implementó la comunicación **Frontend → Backend → PostgreSQL**, el Sprint 1 incorporó etapas, casos y eventos persistentes, y el Sprint 2 agrega la importación validada y trazable de archivos CSV. Todavía no incluye minería de procesos, Machine Learning ni autenticación.
+Sistema en evolución para representar y descubrir el proceso comercial inmobiliario desde un Event Log. Los Sprints 0–2 implementaron infraestructura, persistencia e importación trazable; el Sprint 3 incorpora descubrimiento de procesos con PM4Py, un Directly-Follows Graph y análisis de variantes. Todavía no incluye conformance checking, Machine Learning ni autenticación.
 
 ## Arquitectura
 
@@ -392,6 +392,43 @@ Distribución configurada:
 
 Los archivos en `data/` están ignorados por Git.
 
-## Pendiente para Sprint 3
+## Sprint 3 — Minería de Procesos
 
-Permanecen fuera de alcance PM4Py, Process Mining, Directly-Follows Graph, descubrimiento de procesos, conformance checking, clasificación de desviaciones, reglas automáticas de SLA, Machine Learning, predicciones y alertas.
+Sprint 3 analiza bajo demanda los eventos `STAGE_CHANGE` almacenados en PostgreSQL. La integración usa PM4Py `2.7.23.8` y está encapsulada en el servicio de Process Mining; no lee los CSV originales ni utiliza el ground truth del generador. La explicación completa está en [`docs/process-mining.md`](docs/process-mining.md).
+
+### Transformación y descubrimiento
+
+| PostgreSQL | PM4Py |
+|---|---|
+| `commercial_cases.case_code` | `case:concept:name` |
+| `events.activity` | `concept:name` |
+| `events.timestamp` | `time:timestamp` |
+| `events.resource` | `org:resource` |
+
+La consulta se ordena por caso y timestamp, normaliza el tiempo a UTC y entrega un DataFrame a `pm4py.discover_dfg`. El DFG, las actividades iniciales/finales y las variantes se descubren desde los datos. Pandas se usa para enriquecer las transiciones con frecuencia por caso y duraciones promedio, mediana, mínima y máxima.
+
+### Endpoints del Sprint 3
+
+| Método | Ruta | Propósito |
+|---|---|---|
+| `GET` | `/api/v1/process-mining/dfg` | Nodos, conexiones e inicios/finales observados. |
+| `GET` | `/api/v1/process-mining/performance` | Duraciones de las transiciones. |
+| `GET` | `/api/v1/process-mining/variants?limit=20` | Variantes ordenadas por cantidad de casos. |
+| `GET` | `/api/v1/process-mining/variants/{variant_id}/cases` | Casos paginados de una variante. |
+| `GET` | `/api/v1/process-mining/summary` | Métricas generales del Event Log analizado. |
+| `GET` | `/api/v1/process-mining/activities` | Frecuencia total y por caso de cada actividad. |
+| `GET` | `/api/v1/process-mining/transitions` | Frecuencia, porcentaje y tiempos por transición. |
+
+La interfaz está disponible en http://localhost:5173/process-mining. Incluye indicadores, mapa React Flow con layout Dagre, detalle de nodos y conexiones, variantes con casos asociados y tabla de transiciones.
+
+```bash
+curl http://localhost:8000/api/v1/process-mining/summary
+curl http://localhost:8000/api/v1/process-mining/dfg
+curl "http://localhost:8000/api/v1/process-mining/variants?limit=20"
+```
+
+PM4Py Community Edition se distribuye bajo AGPL-3.0-or-later. Antes de un despliegue comercial cerrado debe revisarse la compatibilidad de licencia o adquirirse la licencia correspondiente del proveedor.
+
+## Pendiente para Sprint 4
+
+Permanecen fuera de alcance conformance checking, comparación contra un proceso esperado, clasificación de rutas, reglas automáticas de SLA, detección formal, Machine Learning, predicciones y alertas.

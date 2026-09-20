@@ -24,3 +24,7 @@ class PersistenceError(ApplicationError):
 
 class FileTooLargeError(ApplicationError):
     status_code = 413
+
+
+class ProcessMiningError(ApplicationError):
+    status_code = 500

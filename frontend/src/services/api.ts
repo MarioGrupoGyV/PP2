@@ -4,6 +4,15 @@ import type {
   ImportPreview,
   ImportResult,
 } from "../types/imports";
+import type {
+  ActivityStatistic,
+  DfgResponse,
+  PerformanceResponse,
+  ProcessMiningSummary,
+  TransitionStatistic,
+  VariantCasesResponse,
+  VariantStatistic,
+} from "../types/processMining";
 
 const API_URL = (import.meta.env.VITE_API_URL || "http://localhost:8000").replace(
   /\/$/,
@@ -78,4 +87,56 @@ export function getImportHistory(): Promise<EventLogImport[]> {
 
 export function getImportTemplateUrl(): string {
   return `${API_URL}/api/v1/imports/template`;
+}
+
+export function getProcessMiningSummary(): Promise<ProcessMiningSummary> {
+  return requestJson<ProcessMiningSummary>("/api/v1/process-mining/summary", {}, 30_000);
+}
+
+export function getProcessDfg(): Promise<DfgResponse> {
+  return requestJson<DfgResponse>("/api/v1/process-mining/dfg", {}, 30_000);
+}
+
+export function getProcessPerformance(): Promise<PerformanceResponse> {
+  return requestJson<PerformanceResponse>(
+    "/api/v1/process-mining/performance",
+    {},
+    30_000,
+  );
+}
+
+export function getProcessVariants(limit = 20): Promise<VariantStatistic[]> {
+  return requestJson<VariantStatistic[]>(
+    `/api/v1/process-mining/variants?limit=${limit}`,
+    {},
+    30_000,
+  );
+}
+
+export function getProcessActivities(): Promise<ActivityStatistic[]> {
+  return requestJson<ActivityStatistic[]>(
+    "/api/v1/process-mining/activities",
+    {},
+    30_000,
+  );
+}
+
+export function getProcessTransitions(): Promise<TransitionStatistic[]> {
+  return requestJson<TransitionStatistic[]>(
+    "/api/v1/process-mining/transitions",
+    {},
+    30_000,
+  );
+}
+
+export function getVariantCases(
+  variantId: string,
+  page = 1,
+  pageSize = 20,
+): Promise<VariantCasesResponse> {
+  return requestJson<VariantCasesResponse>(
+    `/api/v1/process-mining/variants/${variantId}/cases?page=${page}&page_size=${pageSize}`,
+    {},
+    30_000,
+  );
 }
