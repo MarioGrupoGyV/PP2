@@ -1,0 +1,90 @@
+name: gyv-commercial-process-mining
+
+services:
+  database:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-gyv_process_mining}
+      POSTGRES_USER: ${POSTGRES_USER:-gyv_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-gyv_password}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+    networks:
+      - app_network
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ./backend
+    environment:
+      ENVIRONMENT: development
+      BACKEND_HOST: 0.0.0.0
+      BACKEND_PORT: 8000
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
+      POSTGRES_DB: ${POSTGRES_DB:-gyv_process_mining}
+      POSTGRES_USER: ${POSTGRES_USER:-gyv_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-gyv_password}
+      POSTGRES_HOST: database
+      POSTGRES_PORT: 5432
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-gyv_user}:${POSTGRES_PASSWORD:-gyv_password}@database:5432/${POSTGRES_DB:-gyv_process_mining}
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    depends_on:
+      database:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/v1/health')"
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - app_network
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:8000}
+    ports:
+      - "5173:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - wget
+        - --quiet
+        - --tries=1
+        - --spider
+        - http://127.0.0.1/
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    networks:
+      - app_network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+
+networks:
+  app_network:
+    driver: bridge
