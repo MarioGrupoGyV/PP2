@@ -36,6 +36,15 @@ services:
       ML_MODEL_DIR: ${ML_MODEL_DIR:-/app/ml/models}
       ALERT_RISK_THRESHOLD: ${ALERT_RISK_THRESHOLD:-0.70}
       ALERT_BATCH_LIMIT: ${ALERT_BATCH_LIMIT:-100}
+      ANALYST_ENABLED: ${ANALYST_ENABLED:-true}
+      ANALYST_LLM_PROVIDER: ${ANALYST_LLM_PROVIDER:-ollama}
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://ollama:11434}
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-qwen2.5:7b}
+      ANALYST_MAX_TOOL_ROUNDS: ${ANALYST_MAX_TOOL_ROUNDS:-6}
+      ANALYST_MAX_HISTORY_MESSAGES: ${ANALYST_MAX_HISTORY_MESSAGES:-10}
+      ANALYST_TIMEOUT_SECONDS: ${ANALYST_TIMEOUT_SECONDS:-60}
+      ANALYST_MAX_TOOL_RESULT_ITEMS: ${ANALYST_MAX_TOOL_RESULT_ITEMS:-50}
+      ANALYST_TEMPERATURE: ${ANALYST_TEMPERATURE:-0.1}
       POSTGRES_DB: ${POSTGRES_DB:-gyv_process_mining}
       POSTGRES_USER: ${POSTGRES_USER:-gyv_user}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-gyv_password}
@@ -57,6 +66,25 @@ services:
         - "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/v1/health')"
       interval: 10s
       timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - app_network
+    restart: unless-stopped
+
+  ollama:
+    image: ollama/ollama:0.34.4
+    ports:
+      - "${OLLAMA_PORT:-11434}:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    healthcheck:
+      test:
+        - CMD
+        - ollama
+        - list
+      interval: 15s
+      timeout: 10s
       retries: 5
       start_period: 10s
     networks:
@@ -93,6 +121,7 @@ services:
 volumes:
   postgres_data:
   ml_models:
+  ollama_data:
 
 networks:
   app_network:

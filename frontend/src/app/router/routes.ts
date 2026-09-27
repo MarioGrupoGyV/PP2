@@ -12,6 +12,7 @@ export const NAVIGATION_ROUTES: NavigationRoute[] = [
   { path: "/deviations", label: "Desviaciones", shortLabel: "DV", matches: (path) => path === "/deviations" },
   { path: "/predictions", label: "Predicciones", shortLabel: "PR", matches: (path) => path === "/predictions" },
   { path: "/alerts", label: "Alertas", shortLabel: "AL", matches: (path) => path === "/alerts" },
+  { path: "/analyst", label: "Analista IA", shortLabel: "IA", matches: (path) => path === "/analyst" },
   { path: "/imports", label: "Importaciones", shortLabel: "IM", matches: (path) => path === "/imports" },
 ];
 

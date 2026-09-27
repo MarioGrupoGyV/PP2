@@ -47,6 +47,11 @@ import type {
   CommercialCaseList,
   ProcessStage,
 } from "../types/cases";
+import type {
+  AnalystChatRequest,
+  AnalystChatResponse,
+  AnalystStatus,
+} from "../types/analyst";
 
 const API_URL = (import.meta.env.VITE_API_URL || "http://localhost:8000").replace(
   /\/$/,
@@ -365,5 +370,21 @@ export function evaluateCaseAlert(caseId: string, asOf?: string): Promise<AlertE
       body: JSON.stringify(asOf ? { as_of: asOf } : {}),
     },
     30_000,
+  );
+}
+
+export function getAnalystStatus(): Promise<AnalystStatus> {
+  return requestJson<AnalystStatus>("/api/v1/analyst/status", {}, 10_000);
+}
+
+export function askAnalyst(data: AnalystChatRequest): Promise<AnalystChatResponse> {
+  return requestJson<AnalystChatResponse>(
+    "/api/v1/analyst/chat",
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    },
+    300_000,
   );
 }

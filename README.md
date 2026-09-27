@@ -1,10 +1,10 @@
 # Sistema de minería de procesos con alertas predictivas para detectar desviaciones en la gestión comercial inmobiliaria
 
-Sistema para representar, descubrir y contrastar el proceso comercial inmobiliario desde un Event Log. Los Sprints 0–6 implementaron infraestructura, persistencia, importación trazable, Process Mining, detección histórica de desviaciones, estimación ML de riesgo `NEXT_DEVIATION` y gestión de alertas predictivas. Sprint 7 integra esos módulos en una experiencia web coherente para G&V. La autenticación permanece fuera del alcance actual.
+Sistema para representar, descubrir y contrastar el proceso comercial inmobiliario desde un Event Log. Los Sprints 0–6 implementaron infraestructura, persistencia, importación trazable, Process Mining, detección histórica de desviaciones, estimación ML de riesgo `NEXT_DEVIATION` y gestión de alertas predictivas. Sprint 7 integra esos módulos en una experiencia web coherente para G&V y Sprint 8 incorpora un Analista IA local, gratuito por consulta y de solo lectura. La autenticación permanece fuera del alcance actual.
 
 ## Arquitectura
 
-El proyecto es un monorepo modular con tres servicios desplegables mediante Docker Compose:
+El proyecto es un monorepo modular con cuatro servicios desplegables mediante Docker Compose:
 
 ```text
 Navegador
@@ -17,6 +17,8 @@ FastAPI + SQLAlchemy (puerto 8000)
    │ SQL
    ▼
 PostgreSQL (puerto 5432)
+
+FastAPI ──► ProcessAnalystAgent ──► Ollama (puerto 11434)
 ```
 
 Se usa una única aplicación backend; no hay microservicios. PostgreSQL mantiene sus datos en un volumen de Docker.
@@ -27,6 +29,7 @@ Se usa una única aplicación backend; no hay microservicios. PostgreSQL mantien
 - Backend: Python, FastAPI, Pydantic y SQLAlchemy.
 - Base de datos: PostgreSQL con el driver Psycopg.
 - Infraestructura: Docker y Docker Compose.
+- IA local opcional: Ollama con un modelo configurable compatible con tool calling.
 - Control de versiones: Git.
 
 ## Estructura principal
@@ -163,6 +166,8 @@ npm run dev
 | Swagger UI | http://localhost:8000/docs |
 | OpenAPI | http://localhost:8000/openapi.json |
 | PostgreSQL | localhost:5432 |
+| Analista IA | http://localhost:5173/analyst |
+| Estado del modelo local | http://localhost:8000/api/v1/analyst/status |
 
 ## Endpoints del Sprint 0
 
@@ -226,6 +231,14 @@ La interfaz final incorpora:
 - modo demostración dinámico en `/demo`, con candidatos HIGH y LOW obtenidos de la base de datos.
 
 La documentación de decisiones, arquitectura visual, guion de 3–5 minutos y limitaciones está en [`docs/ui-integration.md`](docs/ui-integration.md). Sprint 7 no añade endpoints, migraciones, lógica ML, reglas de desviaciones ni reglas de alertas.
+
+## Sprint 8 — Analista IA local
+
+La pantalla `/analyst` usa FastAPI como único intermediario con Ollama. Un solo agente puede consultar once herramientas de lectura para casos, timelines, conformidad, desviaciones, predicciones persistidas, alertas y métricas de Process Mining. No tiene herramientas SQL, shell, web, RAG ni operaciones de escritura.
+
+El modelo predeterminado es `qwen2.5:7b`, configurable mediante `OLLAMA_MODEL`. El módulo no requiere una API de inferencia pagada y funciona sin costo por llamada a API; sí utiliza recursos de hardware locales. FastAPI y los módulos anteriores siguen funcionando si Ollama no está disponible.
+
+La instalación, opciones Docker/Windows, preparación offline, endpoints, seguridad y limitaciones se documentan en [`docs/analyst-agent.md`](docs/analyst-agent.md). La descarga del modelo es un paso explícito y nunca ocurre durante el arranque de FastAPI. El [informe de validación del Sprint 8](docs/sprint8-report.md) registra las seis consultas reales, los 108 tests y el ajuste local a `qwen2.5:3b` en una laptop con RAM limitada.
 
 ## Alcance del Sprint 0
 

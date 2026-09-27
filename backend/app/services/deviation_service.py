@@ -291,6 +291,11 @@ def get_summary(db: Session) -> DeviationSummary:
     )
 
 
+def get_affected_case_counts_by_type(db: Session) -> dict[str, int]:
+    counts = deviation_repository.affected_case_counts_by_type(db)
+    return {item.value: counts.get(item.value, 0) for item in DeviationType}
+
+
 def get_case_conformance(db: Session, case_id: UUID) -> CaseConformance:
     case = db.get(CommercialCase, case_id)
     if case is None:

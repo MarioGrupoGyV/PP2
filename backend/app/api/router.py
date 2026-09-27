@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 
 from app.api.routes import (
+    analyst,
     alerts,
     commercial_cases,
     event_log,
@@ -14,6 +15,7 @@ from app.api.routes import (
 )
 
 api_router = APIRouter()
+api_router.include_router(analyst.router, prefix="/analyst", tags=["process-analyst"])
 api_router.include_router(health.router, prefix="/health", tags=["health"])
 api_router.include_router(
     process_stages.router,

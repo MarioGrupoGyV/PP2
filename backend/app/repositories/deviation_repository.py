@@ -100,3 +100,12 @@ def summary(db: Session) -> tuple[int, int, dict[str, int], dict[str, int]]:
         {item.value: count for item, count in type_rows},
         {item.value: count for item, count in severity_rows},
     )
+
+
+def affected_case_counts_by_type(db: Session) -> dict[str, int]:
+    rows = db.execute(
+        select(Deviation.type, func.count(func.distinct(Deviation.case_id))).group_by(
+            Deviation.type
+        )
+    ).all()
+    return {item.value: count for item, count in rows}

@@ -28,3 +28,15 @@ class FileTooLargeError(ApplicationError):
 
 class ProcessMiningError(ApplicationError):
     status_code = 500
+
+
+class AnalystUnavailableError(ApplicationError):
+    status_code = 503
+
+
+class AnalystExecutionError(ApplicationError):
+    status_code = 502
+
+
+class AnalystTimeoutError(ApplicationError):
+    status_code = 504

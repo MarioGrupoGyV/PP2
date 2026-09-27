@@ -9,6 +9,7 @@ import { ProcessMiningPage } from "../pages/ProcessMiningPage";
 import { DeviationsPage } from "../pages/DeviationsPage";
 import { PredictionsPage } from "../pages/PredictionsPage";
 import { AlertsPage } from "../pages/AlertsPage";
+import { AnalystPage } from "../pages/AnalystPage";
 
 export function App() {
   const path = normalizePath(window.location.pathname);
@@ -22,6 +23,7 @@ export function App() {
   else if (path === "/deviations") page = <DeviationsPage />;
   else if (path === "/predictions") page = <PredictionsPage />;
   else if (path === "/alerts") page = <AlertsPage />;
+  else if (path === "/analyst") page = <AnalystPage />;
   else if (path === "/demo") page = <DemoPage />;
   else page = <main className="px-6 py-12"><h1 className="text-3xl font-bold">Página no encontrada</h1><a href="/" className="mt-4 inline-flex font-bold text-brand-700">Volver al Dashboard</a></main>;
   return <AppShell pathname={path}>{page}</AppShell>;
