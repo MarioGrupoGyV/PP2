@@ -81,3 +81,15 @@ export const MANUAL_REGISTRATION_LABELS = {
   cancel: "Cancelar",
   invalidDate: "La fecha y hora indicada no es válida.",
 } as const;
+
+/** Resultado de evaluar la alerta de un caso (POST /cases/{id}/alerts/evaluate). */
+export const ALERT_EVALUATION_OUTCOME_LABELS: Record<string, { title: string; tone: "warning" | "success" | "neutral" }> = {
+  CREATED: { title: "Se generó una nueva alerta operativa para este caso.", tone: "warning" },
+  UPDATED: { title: "La alerta abierta del caso se actualizó con el nuevo riesgo.", tone: "warning" },
+  BELOW_THRESHOLD: { title: "El riesgo está por debajo del umbral: no se generó ninguna alerta.", tone: "success" },
+  NO_CHANGE: { title: "Sin cambios: esta predicción ya había sido evaluada.", tone: "neutral" },
+  NOT_APPLICABLE: { title: "La predicción temprana ya no aplica a este caso.", tone: "neutral" },
+  INELIGIBLE: { title: "Solo se evalúan alertas de casos activos.", tone: "neutral" },
+  NO_OBSERVABLE_STATE: { title: "El caso no tiene eventos suficientes para evaluarlo.", tone: "neutral" },
+  CLOSED_CYCLE_NOT_NEW: { title: "No hay una predicción nueva desde el cierre de la última alerta.", tone: "neutral" },
+};

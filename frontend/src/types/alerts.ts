@@ -72,11 +72,21 @@ export interface AlertSummary {
   by_risk_level: Record<RiskLevel, number>;
 }
 
+export type AlertEvaluationOutcome =
+  | "CREATED"
+  | "UPDATED"
+  | "NO_CHANGE"
+  | "BELOW_THRESHOLD"
+  | "NOT_APPLICABLE"
+  | "INELIGIBLE"
+  | "NO_OBSERVABLE_STATE"
+  | "CLOSED_CYCLE_NOT_NEW";
+
 export interface AlertEvaluation {
   case_id: string;
   case_code: string;
   evaluation_mode: AlertEvaluationMode;
-  outcome: string;
+  outcome: AlertEvaluationOutcome;
   prediction: Prediction | null;
   alert: Alert | null;
   alert_risk_threshold: number;
