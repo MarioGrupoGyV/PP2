@@ -75,7 +75,7 @@ export function RegisterEventForm({
 
   return <SectionCard title={T.registerEvent} description="Añade manualmente un evento al Event Log del caso. Un cambio de etapa actualiza la etapa actual." action={<a href={`/deviations?case=${encodeURIComponent(commercialCase.case_code)}`} className="text-sm font-bold text-brand-700">{T.analyzeDeviations}</a>}>
     <form onSubmit={(event) => void submit(event)} className="space-y-4">
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5">
         <label className={LABEL_CLASS}>{FORM_FIELD_LABELS.stage_id}<select required value={stageId} onChange={(event) => changeStage(event.target.value)} className={INPUT_CLASS}>{activeStages.length === 0 && <option value="">Sin etapas activas</option>}{activeStages.map((stage) => <option key={stage.id} value={stage.id}>{stage.sequence}. {stage.name} ({stage.code})</option>)}</select></label>
         <label className={LABEL_CLASS}>{FORM_FIELD_LABELS.activity}<input required maxLength={200} value={activity} onChange={(event) => setActivity(event.target.value)} className={INPUT_CLASS} /></label>
         <label className={LABEL_CLASS}>{FORM_FIELD_LABELS.event_type}<select value={eventType} onChange={(event) => setEventType(event.target.value as EventType)} className={INPUT_CLASS}>{(Object.keys(EVENT_TYPE_LABELS) as EventType[]).map((item) => <option key={item} value={item}>{EVENT_TYPE_LABELS[item]}</option>)}</select></label>
