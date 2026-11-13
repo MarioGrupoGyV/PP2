@@ -20,6 +20,7 @@ import { PageHeader, SectionCard } from "../shared/components/Layout";
 import { EmptyState, ErrorState, LoadingState } from "../shared/components/States";
 import { ALERT_ACTION_LABELS, DEVIATION_TYPE_LABELS, EVENT_TYPE_LABELS } from "../shared/constants/labels";
 import { formatDateTime, formatPercentage } from "../shared/utils/format";
+import { RegisterEventForm } from "../features/cases/RegisterEventForm";
 
 interface DetailData {
   commercialCase: CommercialCase;
@@ -55,6 +56,19 @@ export function CaseDetailPage({ caseId }: { caseId: string }) {
   useEffect(() => { void load(); }, [load]);
   const stageById = useMemo(() => Object.fromEntries((data?.stages ?? []).map((stage) => [stage.id, stage])), [data]);
 
+  // Tras registrar un evento se recargan el caso (etapa actual), el timeline y la conformidad
+  // sin desmontar la página, para conservar el formulario y su mensaje de confirmación.
+  const refreshAfterEvent = useCallback(async () => {
+    try {
+      const [commercialCase, events, conformance] = await Promise.all([
+        getCase(caseId), getCaseEvents(caseId), getCaseConformance(caseId),
+      ]);
+      setData((current) => current ? { ...current, commercialCase, events, conformance } : current);
+    } catch (reason) {
+      setError(reason instanceof Error ? `El evento se registró, pero no se pudo actualizar la vista: ${reason.message}` : "El evento se registró, pero no se pudo actualizar la vista");
+    }
+  }, [caseId]);
+
   async function calculateRisk() {
     setPredicting(true); setError(null);
     try {
@@ -72,6 +86,7 @@ export function CaseDetailPage({ caseId }: { caseId: string }) {
   return <main className="px-4 py-6 sm:px-6 lg:px-8"><div className="mx-auto max-w-[1500px] space-y-6"><nav aria-label="Breadcrumb" className="text-sm text-muted"><a href="/cases" className="font-bold text-brand-700">Casos</a><span className="mx-2">›</span><span aria-current="page">{data.commercialCase.case_code}</span></nav><PageHeader eyebrow="Detalle integral" title={data.commercialCase.case_code} description="Trazabilidad del caso desde el Event Log hasta la gestión predictiva." action={<div className="flex flex-wrap gap-2"><a href={`/analyst?case=${encodeURIComponent(data.commercialCase.case_code)}`} className="rounded-lg border border-line bg-white px-4 py-2 text-sm font-bold text-brand-700">Preguntar al Analista</a><a href="/process-mining" className="rounded-lg border border-line bg-white px-4 py-2 text-sm font-bold">Ver minería de procesos</a></div>} />
     {error && <ErrorState message={error} onRetry={() => void load()} />}
     <SectionCard><dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-6"><div><dt className="text-xs font-bold uppercase text-muted">Etapa actual</dt><dd className="mt-1 font-bold">{currentStage?.name ?? "—"}</dd></div><div><dt className="text-xs font-bold uppercase text-muted">Estado</dt><dd className="mt-1"><CaseStatusBadge status={data.commercialCase.status} /></dd></div><div><dt className="text-xs font-bold uppercase text-muted">Fuente</dt><dd className="mt-1 font-semibold">{data.commercialCase.source || "—"}</dd></div><div><dt className="text-xs font-bold uppercase text-muted">Asesor</dt><dd className="mt-1 font-semibold">{data.commercialCase.assigned_resource || "—"}</dd></div><div><dt className="text-xs font-bold uppercase text-muted">Inicio</dt><dd className="mt-1 text-sm">{formatDateTime(data.commercialCase.started_at)}</dd></div><div><dt className="text-xs font-bold uppercase text-muted">Cierre</dt><dd className="mt-1 text-sm">{formatDateTime(data.commercialCase.closed_at)}</dd></div></dl></SectionCard>
+    <RegisterEventForm commercialCase={data.commercialCase} stages={data.stages} onSaved={refreshAfterEvent} />
     <div className="grid gap-6 xl:grid-cols-[minmax(0,1.3fr)_minmax(360px,0.7fr)]">
       <SectionCard title="Timeline del caso" description={`${data.events.length} eventos ordenados cronológicamente`}><div className="space-y-0">{data.events.map((event, index) => <div key={event.id} className="relative pb-5 pl-8"><span className={`absolute left-1 top-1 h-3 w-3 rounded-full ${event.event_type === "STAGE_CHANGE" ? "bg-brand-700" : "bg-blue-500"}`} />{index < data.events.length - 1 && <span className="absolute left-[9px] top-4 h-full w-px bg-line" />}<div className="flex flex-wrap items-baseline justify-between gap-2"><p className="font-bold">{stageById[event.stage_id]?.name ?? "Etapa no disponible"}</p><time className="text-xs text-muted">{formatDateTime(event.timestamp)}</time></div><p className="mt-1 text-sm text-ink-950">{event.activity}</p><p className="mt-1 text-xs text-muted">{EVENT_TYPE_LABELS[event.event_type]} · {event.resource || "Sin recurso"}</p></div>)}</div>{!data.events.length && <EmptyState title="Sin eventos" description="Este caso no dispone de un timeline observable." />}</SectionCard>
       <SectionCard title="Conformidad" description="Comparación estructural con el proceso esperado"><div className={`rounded-lg border p-4 ${data.conformance.structurally_conforming ? "border-emerald-200 bg-emerald-50" : "border-amber-200 bg-amber-50"}`}><p className="font-bold">{data.conformance.structurally_conforming ? "Conforme" : "Con desviaciones estructurales"}</p><p className="mt-1 text-xs text-muted">Un recorrido incompleto no se considera incorrecto por sí mismo.</p></div><div className="mt-4"><p className="text-xs font-bold uppercase text-muted">Secuencia observada</p><div className="mt-2 flex flex-wrap gap-2">{data.conformance.observed_sequence.map((stage, index) => <span key={`${stage}-${index}`} className="rounded-md border border-line bg-surface-muted px-2 py-1 text-xs font-semibold">{stage}</span>)}</div></div><div className="mt-4"><p className="text-xs font-bold uppercase text-muted">Secuencia esperada</p><p className="mt-2 text-sm text-muted">{data.conformance.expected_sequence.join(" → ")}</p></div></SectionCard>

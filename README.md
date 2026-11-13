@@ -240,6 +240,21 @@ El modelo predeterminado es `qwen2.5:7b`, configurable mediante `OLLAMA_MODEL`. 
 
 La instalación, opciones Docker/Windows, preparación offline, endpoints, seguridad y limitaciones se documentan en [`docs/analyst-agent.md`](docs/analyst-agent.md). La descarga del modelo es un paso explícito y nunca ocurre durante el arranque de FastAPI. El [informe de validación del Sprint 8](docs/sprint8-report.md) registra las seis consultas reales, los 108 tests y el ajuste local a `qwen2.5:3b` en una laptop con RAM limitada.
 
+## Sprint 9 — Registro manual
+
+El flujo comercial ya puede registrarse desde la interfaz, sin importar un CSV. Sprint 9 solo modifica el frontend: reutiliza los endpoints existentes y no cambia el backend, las migraciones ni el modelo ML.
+
+- **Nuevo caso (`/cases`)**: el botón «Nuevo caso» abre un formulario que llama a `POST /api/v1/cases` con `case_code`, `current_stage_id` (etapas activas de `GET /api/v1/process-stages`, por defecto `LEAD`), `assigned_resource`, `source`, `status` (por defecto `ACTIVE`) y `started_at` (`datetime-local`, por defecto la hora actual). Al crearse, redirige a `/cases/{id}`.
+- **Registrar evento (`/cases/:id`)**: formulario que llama a `POST /api/v1/cases/{case_id}/events` con `stage_id` (etapas activas ordenadas por `sequence`; sugiere la siguiente a la etapa actual), `activity` (se autocompleta con el nombre de la etapa y es editable), `event_type` (por defecto `STAGE_CHANGE`), `resource` (por defecto el asesor del caso) y `timestamp` (editable, para simular plazos vencidos). Al guardar se recargan el caso (etapa actual), el timeline y la conformidad sin salir de la página.
+- **Fechas**: los valores `datetime-local` se convierten a ISO 8601 con el desplazamiento horario del navegador (p. ej. `2026-11-13T09:30:00-05:00`) en `src/shared/utils/datetime.ts`.
+- **Errores**: `src/shared/utils/apiErrors.ts` traduce las respuestas 404 (caso o etapa inexistente), 409 (código de caso duplicado) y 422 (etapa inactiva o validaciones de Pydantic, campo por campo) a mensajes en español. `requestJson` ya no convierte en texto ilegible el `detail` en forma de lista de los 422.
+- **Enlaces**: ambos formularios incluyen «Analizar desviaciones», que lleva a `/deviations` (filtrado por el caso desde el detalle). Las desviaciones persistidas no se recalculan solas: hay que ejecutar el análisis en ese módulo.
+- **Dashboard**: la tarjeta «Mayor duración observada» elige la transición con mayor duración **promedio** y la muestra como «Promedio: …», igual que en Minería de Procesos. Antes mostraba la duración máxima, por eso no coincidían las cifras.
+
+Archivos nuevos: `src/features/cases/NewCaseForm.tsx`, `src/features/cases/RegisterEventForm.tsx`, `src/shared/utils/apiErrors.ts`, `src/shared/utils/datetime.ts` y `src/types/api.ts`. Las llamadas `createCase` y `createCaseEvent` están en `src/services/api.ts`; los tipos de payload, en `src/types/cases.ts`; los textos, en `src/shared/constants/labels.ts`.
+
+Con Docker, el contenedor `frontend` sirve una compilación estática, así que hay que reconstruirlo para ver los cambios: `docker compose up -d --build frontend`.
+
 ## Alcance del Sprint 0
 
 - Estructura modular del monorepo.

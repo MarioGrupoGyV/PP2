@@ -2,8 +2,8 @@ export function LoadingState({ label = "Cargando información…" }: { label?: s
   return <div role="status" className="rounded-xl border border-line bg-white p-6"><div className="h-3 w-36 animate-pulse rounded bg-slate-200" /><div className="mt-4 h-3 w-2/3 animate-pulse rounded bg-slate-100" /><p className="sr-only">{label}</p></div>;
 }
 
-export function ErrorState({ message, onRetry }: { message: string; onRetry?: () => void }) {
-  return <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-5 text-red-900"><p className="font-bold">No fue posible cargar la información</p><p className="mt-1 text-sm">{message}</p>{onRetry && <button type="button" onClick={onRetry} className="mt-3 rounded-lg border border-red-300 bg-white px-3 py-2 text-sm font-bold">Reintentar</button>}</div>;
+export function ErrorState({ message, onRetry, title = "No fue posible cargar la información" }: { message: string; onRetry?: () => void; title?: string }) {
+  return <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-5 text-red-900"><p className="font-bold">{title}</p><p className="mt-1 text-sm">{message}</p>{onRetry && <button type="button" onClick={onRetry} className="mt-3 rounded-lg border border-red-300 bg-white px-3 py-2 text-sm font-bold">Reintentar</button>}</div>;
 }
 
 export function EmptyState({ title, description, actionHref, actionLabel }: { title: string; description: string; actionHref?: string; actionLabel?: string }) {

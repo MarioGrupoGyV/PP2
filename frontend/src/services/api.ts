@@ -43,10 +43,13 @@ import type { RiskLevel } from "../types/predictions";
 import type {
   CaseConformance,
   CaseEvent,
+  CaseEventCreatePayload,
   CommercialCase,
+  CommercialCaseCreatePayload,
   CommercialCaseList,
   ProcessStage,
 } from "../types/cases";
+import type { ApiErrorDetail } from "../types/api";
 import type {
   AnalystChatRequest,
   AnalystChatResponse,
@@ -58,8 +61,12 @@ const API_URL = (import.meta.env.VITE_API_URL || "http://localhost:8000").replac
   "",
 );
 
-class ApiError extends Error {
-  constructor(message: string, readonly status: number) {
+export class ApiError extends Error {
+  constructor(
+    message: string,
+    readonly status: number,
+    readonly detail: ApiErrorDetail = null,
+  ) {
     super(message);
   }
 }
@@ -84,13 +91,21 @@ async function requestJson<T>(
 
     if (!response.ok) {
       let message = "No fue posible completar la solicitud";
+      let detail: ApiErrorDetail = null;
       try {
-        const body = (await response.json()) as { detail?: string };
-        if (body.detail) message = body.detail;
+        const body = (await response.json()) as { detail?: unknown };
+        if (typeof body.detail === "string") {
+          message = body.detail;
+          detail = body.detail;
+        } else if (Array.isArray(body.detail)) {
+          // Errores de validación de Pydantic (HTTP 422): lista de incidencias.
+          message = "Los datos enviados no son válidos";
+          detail = body.detail as ApiErrorDetail;
+        }
       } catch {
         // La respuesta puede no contener JSON en errores de red o proxy.
       }
-      throw new ApiError(message, response.status);
+      throw new ApiError(message, response.status, detail);
     }
 
     return (await response.json()) as T;
@@ -259,8 +274,27 @@ export function getCase(caseId: string): Promise<CommercialCase> {
   return requestJson<CommercialCase>(`/api/v1/cases/${caseId}`);
 }
 
+export function createCase(data: CommercialCaseCreatePayload): Promise<CommercialCase> {
+  return requestJson<CommercialCase>("/api/v1/cases", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+}
+
 export function getProcessStages(): Promise<ProcessStage[]> {
   return requestJson<ProcessStage[]>("/api/v1/process-stages");
+}
+
+export function createCaseEvent(
+  caseId: string,
+  data: CaseEventCreatePayload,
+): Promise<CaseEvent> {
+  return requestJson<CaseEvent>(`/api/v1/cases/${caseId}/events`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
 }
 
 export function getCaseEvents(caseId: string): Promise<CaseEvent[]> {

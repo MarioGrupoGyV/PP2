@@ -55,3 +55,21 @@ export interface CaseConformance {
   structural_deviations: Deviation[];
   temporal_deviations: Deviation[];
 }
+
+export interface CommercialCaseCreatePayload {
+  case_code: string;
+  current_stage_id: string;
+  assigned_resource: string | null;
+  source: string | null;
+  status: CaseStatus;
+  started_at: string;
+}
+
+export interface CaseEventCreatePayload {
+  stage_id: string;
+  activity: string;
+  event_type: EventType;
+  resource: string | null;
+  timestamp: string;
+  metadata?: Record<string, unknown>;
+}
